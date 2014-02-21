@@ -16,14 +16,26 @@
 		E911BCC818B2FCC900D8B8EC /* HFFAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = E911BCC718B2FCC900D8B8EC /* HFFAppDelegate.m */; };
 		E911BCCB18B2FCC900D8B8EC /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E911BCC918B2FCC900D8B8EC /* Main.storyboard */; };
 		E911BCCE18B2FCC900D8B8EC /* HFFViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = E911BCCD18B2FCC900D8B8EC /* HFFViewController.m */; };
-		E911BCD118B2FCC900D8B8EC /* HFFMyScene.m in Sources */ = {isa = PBXBuildFile; fileRef = E911BCD018B2FCC900D8B8EC /* HFFMyScene.m */; };
+		E911BCD118B2FCC900D8B8EC /* HFFScene.m in Sources */ = {isa = PBXBuildFile; fileRef = E911BCD018B2FCC900D8B8EC /* HFFScene.m */; };
 		E911BCD318B2FCC900D8B8EC /* Spaceship.png in Resources */ = {isa = PBXBuildFile; fileRef = E911BCD218B2FCC900D8B8EC /* Spaceship.png */; };
 		E911BCD518B2FCC900D8B8EC /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E911BCD418B2FCC900D8B8EC /* Images.xcassets */; };
-		E911BCDC18B2FCC900D8B8EC /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E911BCDB18B2FCC900D8B8EC /* XCTest.framework */; };
 		E911BCDD18B2FCC900D8B8EC /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E911BCB518B2FCC900D8B8EC /* Foundation.framework */; };
 		E911BCDE18B2FCC900D8B8EC /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E911BCB918B2FCC900D8B8EC /* UIKit.framework */; };
-		E911BCE618B2FCC900D8B8EC /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = E911BCE418B2FCC900D8B8EC /* InfoPlist.strings */; };
-		E911BCE818B2FCC900D8B8EC /* Here_Fishy_FishyTests.m in Sources */ = {isa = PBXBuildFile; fileRef = E911BCE718B2FCC900D8B8EC /* Here_Fishy_FishyTests.m */; };
+		E911BD8B18B4364900D8B8EC /* SKUtils.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E911BD8A18B4364900D8B8EC /* SKUtils.framework */; };
+		E9AE8F0118B51DAD00132D48 /* fish-0.png in Resources */ = {isa = PBXBuildFile; fileRef = E9AE8EF918B51DAD00132D48 /* fish-0.png */; };
+		E9AE8F0218B51DAD00132D48 /* fish-0@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E9AE8EFA18B51DAD00132D48 /* fish-0@2x.png */; };
+		E9AE8F0318B51DAD00132D48 /* fish-1.png in Resources */ = {isa = PBXBuildFile; fileRef = E9AE8EFB18B51DAD00132D48 /* fish-1.png */; };
+		E9AE8F0418B51DAD00132D48 /* fish-1@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E9AE8EFC18B51DAD00132D48 /* fish-1@2x.png */; };
+		E9AE8F0518B51DAD00132D48 /* fish-dead.png in Resources */ = {isa = PBXBuildFile; fileRef = E9AE8EFD18B51DAD00132D48 /* fish-dead.png */; };
+		E9AE8F0618B51DAD00132D48 /* fish-dead@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E9AE8EFE18B51DAD00132D48 /* fish-dead@2x.png */; };
+		E9AE8F0718B51DAD00132D48 /* foreground.png in Resources */ = {isa = PBXBuildFile; fileRef = E9AE8EFF18B51DAD00132D48 /* foreground.png */; };
+		E9AE8F0818B51DAD00132D48 /* foreground@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E9AE8F0018B51DAD00132D48 /* foreground@2x.png */; };
+		E9AE8F0F18B5267800132D48 /* background.png in Resources */ = {isa = PBXBuildFile; fileRef = E9AE8F0D18B5267800132D48 /* background.png */; };
+		E9AE8F1018B5267800132D48 /* background@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E9AE8F0E18B5267800132D48 /* background@2x.png */; };
+		E9AE8F1318B5294400132D48 /* obstacle.png in Resources */ = {isa = PBXBuildFile; fileRef = E9AE8F1118B5294400132D48 /* obstacle.png */; };
+		E9AE8F1418B5294400132D48 /* obstacle@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E9AE8F1218B5294400132D48 /* obstacle@2x.png */; };
+		E9AE8F1718B5595F00132D48 /* foreground-fancy.png in Resources */ = {isa = PBXBuildFile; fileRef = E9AE8F1518B5595F00132D48 /* foreground-fancy.png */; };
+		E9AE8F1818B5595F00132D48 /* foreground-fancy@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E9AE8F1618B5595F00132D48 /* foreground-fancy@2x.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -51,15 +63,26 @@
 		E911BCCA18B2FCC900D8B8EC /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		E911BCCC18B2FCC900D8B8EC /* HFFViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HFFViewController.h; sourceTree = "<group>"; };
 		E911BCCD18B2FCC900D8B8EC /* HFFViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HFFViewController.m; sourceTree = "<group>"; };
-		E911BCCF18B2FCC900D8B8EC /* HFFMyScene.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HFFMyScene.h; sourceTree = "<group>"; };
-		E911BCD018B2FCC900D8B8EC /* HFFMyScene.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HFFMyScene.m; sourceTree = "<group>"; };
+		E911BCCF18B2FCC900D8B8EC /* HFFScene.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HFFScene.h; sourceTree = "<group>"; };
+		E911BCD018B2FCC900D8B8EC /* HFFScene.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HFFScene.m; sourceTree = "<group>"; };
 		E911BCD218B2FCC900D8B8EC /* Spaceship.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Spaceship.png; sourceTree = "<group>"; };
 		E911BCD418B2FCC900D8B8EC /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		E911BCDA18B2FCC900D8B8EC /* Here Fishy FishyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Here Fishy FishyTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		E911BCDB18B2FCC900D8B8EC /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
-		E911BCE318B2FCC900D8B8EC /* Here Fishy FishyTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Here Fishy FishyTests-Info.plist"; sourceTree = "<group>"; };
-		E911BCE518B2FCC900D8B8EC /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		E911BCE718B2FCC900D8B8EC /* Here_Fishy_FishyTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Here_Fishy_FishyTests.m; sourceTree = "<group>"; };
+		E911BD8A18B4364900D8B8EC /* SKUtils.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SKUtils.framework; path = ../SKUtils/Products/SKUtils.framework; sourceTree = "<group>"; };
+		E9AE8EF918B51DAD00132D48 /* fish-0.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "fish-0.png"; sourceTree = "<group>"; };
+		E9AE8EFA18B51DAD00132D48 /* fish-0@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "fish-0@2x.png"; sourceTree = "<group>"; };
+		E9AE8EFB18B51DAD00132D48 /* fish-1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "fish-1.png"; sourceTree = "<group>"; };
+		E9AE8EFC18B51DAD00132D48 /* fish-1@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "fish-1@2x.png"; sourceTree = "<group>"; };
+		E9AE8EFD18B51DAD00132D48 /* fish-dead.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "fish-dead.png"; sourceTree = "<group>"; };
+		E9AE8EFE18B51DAD00132D48 /* fish-dead@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "fish-dead@2x.png"; sourceTree = "<group>"; };
+		E9AE8EFF18B51DAD00132D48 /* foreground.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = foreground.png; sourceTree = "<group>"; };
+		E9AE8F0018B51DAD00132D48 /* foreground@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "foreground@2x.png"; sourceTree = "<group>"; };
+		E9AE8F0D18B5267800132D48 /* background.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = background.png; sourceTree = "<group>"; };
+		E9AE8F0E18B5267800132D48 /* background@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "background@2x.png"; sourceTree = "<group>"; };
+		E9AE8F1118B5294400132D48 /* obstacle.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = obstacle.png; sourceTree = "<group>"; };
+		E9AE8F1218B5294400132D48 /* obstacle@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "obstacle@2x.png"; sourceTree = "<group>"; };
+		E9AE8F1518B5595F00132D48 /* foreground-fancy.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "foreground-fancy.png"; sourceTree = "<group>"; };
+		E9AE8F1618B5595F00132D48 /* foreground-fancy@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "foreground-fancy@2x.png"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -67,6 +90,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E911BD8B18B4364900D8B8EC /* SKUtils.framework in Frameworks */,
 				E911BCB818B2FCC900D8B8EC /* CoreGraphics.framework in Frameworks */,
 				E911BCBA18B2FCC900D8B8EC /* UIKit.framework in Frameworks */,
 				E911BCBC18B2FCC900D8B8EC /* SpriteKit.framework in Frameworks */,
@@ -78,7 +102,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E911BCDC18B2FCC900D8B8EC /* XCTest.framework in Frameworks */,
 				E911BCDE18B2FCC900D8B8EC /* UIKit.framework in Frameworks */,
 				E911BCDD18B2FCC900D8B8EC /* Foundation.framework in Frameworks */,
 			);
@@ -91,7 +114,6 @@
 			isa = PBXGroup;
 			children = (
 				E911BCBD18B2FCC900D8B8EC /* Here Fishy Fishy */,
-				E911BCE118B2FCC900D8B8EC /* Here Fishy FishyTests */,
 				E911BCB418B2FCC900D8B8EC /* Frameworks */,
 				E911BCB318B2FCC900D8B8EC /* Products */,
 			);
@@ -109,11 +131,11 @@
 		E911BCB418B2FCC900D8B8EC /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				E911BD8A18B4364900D8B8EC /* SKUtils.framework */,
 				E911BCB518B2FCC900D8B8EC /* Foundation.framework */,
 				E911BCB718B2FCC900D8B8EC /* CoreGraphics.framework */,
 				E911BCB918B2FCC900D8B8EC /* UIKit.framework */,
 				E911BCBB18B2FCC900D8B8EC /* SpriteKit.framework */,
-				E911BCDB18B2FCC900D8B8EC /* XCTest.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -121,15 +143,29 @@
 		E911BCBD18B2FCC900D8B8EC /* Here Fishy Fishy */ = {
 			isa = PBXGroup;
 			children = (
+				E9AE8F1518B5595F00132D48 /* foreground-fancy.png */,
+				E9AE8F1618B5595F00132D48 /* foreground-fancy@2x.png */,
 				E911BCC618B2FCC900D8B8EC /* HFFAppDelegate.h */,
 				E911BCC718B2FCC900D8B8EC /* HFFAppDelegate.m */,
 				E911BCC918B2FCC900D8B8EC /* Main.storyboard */,
 				E911BCCC18B2FCC900D8B8EC /* HFFViewController.h */,
 				E911BCCD18B2FCC900D8B8EC /* HFFViewController.m */,
-				E911BCCF18B2FCC900D8B8EC /* HFFMyScene.h */,
-				E911BCD018B2FCC900D8B8EC /* HFFMyScene.m */,
+				E911BCCF18B2FCC900D8B8EC /* HFFScene.h */,
+				E911BCD018B2FCC900D8B8EC /* HFFScene.m */,
 				E911BCD218B2FCC900D8B8EC /* Spaceship.png */,
 				E911BCD418B2FCC900D8B8EC /* Images.xcassets */,
+				E9AE8F1118B5294400132D48 /* obstacle.png */,
+				E9AE8F1218B5294400132D48 /* obstacle@2x.png */,
+				E9AE8F0D18B5267800132D48 /* background.png */,
+				E9AE8F0E18B5267800132D48 /* background@2x.png */,
+				E9AE8EF918B51DAD00132D48 /* fish-0.png */,
+				E9AE8EFA18B51DAD00132D48 /* fish-0@2x.png */,
+				E9AE8EFB18B51DAD00132D48 /* fish-1.png */,
+				E9AE8EFC18B51DAD00132D48 /* fish-1@2x.png */,
+				E9AE8EFD18B51DAD00132D48 /* fish-dead.png */,
+				E9AE8EFE18B51DAD00132D48 /* fish-dead@2x.png */,
+				E9AE8EFF18B51DAD00132D48 /* foreground.png */,
+				E9AE8F0018B51DAD00132D48 /* foreground@2x.png */,
 				E911BCBE18B2FCC900D8B8EC /* Supporting Files */,
 			);
 			path = "Here Fishy Fishy";
@@ -142,24 +178,6 @@
 				E911BCC018B2FCC900D8B8EC /* InfoPlist.strings */,
 				E911BCC318B2FCC900D8B8EC /* main.m */,
 				E911BCC518B2FCC900D8B8EC /* Here Fishy Fishy-Prefix.pch */,
-			);
-			name = "Supporting Files";
-			sourceTree = "<group>";
-		};
-		E911BCE118B2FCC900D8B8EC /* Here Fishy FishyTests */ = {
-			isa = PBXGroup;
-			children = (
-				E911BCE718B2FCC900D8B8EC /* Here_Fishy_FishyTests.m */,
-				E911BCE218B2FCC900D8B8EC /* Supporting Files */,
-			);
-			path = "Here Fishy FishyTests";
-			sourceTree = "<group>";
-		};
-		E911BCE218B2FCC900D8B8EC /* Supporting Files */ = {
-			isa = PBXGroup;
-			children = (
-				E911BCE318B2FCC900D8B8EC /* Here Fishy FishyTests-Info.plist */,
-				E911BCE418B2FCC900D8B8EC /* InfoPlist.strings */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -241,10 +259,24 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E9AE8F1318B5294400132D48 /* obstacle.png in Resources */,
+				E9AE8F0618B51DAD00132D48 /* fish-dead@2x.png in Resources */,
+				E9AE8F0718B51DAD00132D48 /* foreground.png in Resources */,
+				E9AE8F0F18B5267800132D48 /* background.png in Resources */,
 				E911BCC218B2FCC900D8B8EC /* InfoPlist.strings in Resources */,
+				E9AE8F0118B51DAD00132D48 /* fish-0.png in Resources */,
+				E9AE8F0518B51DAD00132D48 /* fish-dead.png in Resources */,
+				E9AE8F0818B51DAD00132D48 /* foreground@2x.png in Resources */,
+				E9AE8F0418B51DAD00132D48 /* fish-1@2x.png in Resources */,
+				E9AE8F1418B5294400132D48 /* obstacle@2x.png in Resources */,
+				E9AE8F1718B5595F00132D48 /* foreground-fancy.png in Resources */,
 				E911BCD518B2FCC900D8B8EC /* Images.xcassets in Resources */,
+				E9AE8F0318B51DAD00132D48 /* fish-1.png in Resources */,
+				E9AE8F1018B5267800132D48 /* background@2x.png in Resources */,
 				E911BCD318B2FCC900D8B8EC /* Spaceship.png in Resources */,
 				E911BCCB18B2FCC900D8B8EC /* Main.storyboard in Resources */,
+				E9AE8F0218B51DAD00132D48 /* fish-0@2x.png in Resources */,
+				E9AE8F1818B5595F00132D48 /* foreground-fancy@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -252,7 +284,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E911BCE618B2FCC900D8B8EC /* InfoPlist.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -266,7 +297,7 @@
 				E911BCCE18B2FCC900D8B8EC /* HFFViewController.m in Sources */,
 				E911BCC418B2FCC900D8B8EC /* main.m in Sources */,
 				E911BCC818B2FCC900D8B8EC /* HFFAppDelegate.m in Sources */,
-				E911BCD118B2FCC900D8B8EC /* HFFMyScene.m in Sources */,
+				E911BCD118B2FCC900D8B8EC /* HFFScene.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -274,7 +305,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E911BCE818B2FCC900D8B8EC /* Here_Fishy_FishyTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -303,14 +333,6 @@
 				E911BCCA18B2FCC900D8B8EC /* Base */,
 			);
 			name = Main.storyboard;
-			sourceTree = "<group>";
-		};
-		E911BCE418B2FCC900D8B8EC /* InfoPlist.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				E911BCE518B2FCC900D8B8EC /* en */,
-			);
-			name = InfoPlist.strings;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
@@ -393,6 +415,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					/Users/michaelrtraverso/dev/traversoft/SKUtils/Products,
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Here Fishy Fishy/Here Fishy Fishy-Prefix.pch";
 				INFOPLIST_FILE = "Here Fishy Fishy/Here Fishy Fishy-Info.plist";
@@ -407,6 +433,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					/Users/michaelrtraverso/dev/traversoft/SKUtils/Products,
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Here Fishy Fishy/Here Fishy Fishy-Prefix.pch";
 				INFOPLIST_FILE = "Here Fishy Fishy/Here Fishy Fishy-Info.plist";
@@ -477,6 +507,7 @@
 				E911BCED18B2FCC900D8B8EC /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		E911BCEE18B2FCC900D8B8EC /* Build configuration list for PBXNativeTarget "Here Fishy FishyTests" */ = {
 			isa = XCConfigurationList;
@@ -485,6 +516,7 @@
 				E911BCF018B2FCC900D8B8EC /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
