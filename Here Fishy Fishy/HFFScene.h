@@ -17,6 +17,15 @@ typedef NS_ENUM(int, GameState) {
     GameStateGameOver
 };
 
+@protocol HFFSceneDelegate
+- (UIImage *)screenshot;
+- (void)shareString:(NSString *)string url:(NSURL*)url image:(UIImage *)screenshot;
+- (NSArray*)getProducts;
+@end
+
+
 @interface HFFScene : SKScene<SKPhysicsContactDelegate>
+-(id)initWithSize:(CGSize)size andDelegate:(id<HFFSceneDelegate>)delegate;
+@property (strong, nonatomic) id<HFFSceneDelegate> delegate;
 
 @end
