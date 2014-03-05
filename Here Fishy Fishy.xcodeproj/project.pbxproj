@@ -34,6 +34,19 @@
 		E925098418BAF46200612051 /* buy@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E925098018BAF46200612051 /* buy@2x.png */; };
 		E925098718BCFF2700612051 /* InAppPurchaseHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = E925098618BCFF2700612051 /* InAppPurchaseHelper.m */; };
 		E925098A18BD00D600612051 /* HFFInAppPurchaseHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = E925098918BD00D600612051 /* HFFInAppPurchaseHelper.m */; };
+		E9972BD418C5744B005BCC2B /* ArcadeClassic.otf in Resources */ = {isa = PBXBuildFile; fileRef = E9972BCA18C5744B005BCC2B /* ArcadeClassic.otf */; };
+		E9972BD518C5744B005BCC2B /* backgroundLoop.m4a in Resources */ = {isa = PBXBuildFile; fileRef = E9972BCC18C5744B005BCC2B /* backgroundLoop.m4a */; };
+		E9972BD618C5744B005BCC2B /* backgroundLoop.wav in Resources */ = {isa = PBXBuildFile; fileRef = E9972BCD18C5744B005BCC2B /* backgroundLoop.wav */; };
+		E9972BD718C5744B005BCC2B /* bubbleUp.m4a in Resources */ = {isa = PBXBuildFile; fileRef = E9972BCE18C5744B005BCC2B /* bubbleUp.m4a */; };
+		E9972BD818C5744B005BCC2B /* crash.m4a in Resources */ = {isa = PBXBuildFile; fileRef = E9972BCF18C5744B005BCC2B /* crash.m4a */; };
+		E9972BD918C5744B005BCC2B /* ding.m4a in Resources */ = {isa = PBXBuildFile; fileRef = E9972BD018C5744B005BCC2B /* ding.m4a */; };
+		E9972BDA18C5744B005BCC2B /* littleDing.m4a in Resources */ = {isa = PBXBuildFile; fileRef = E9972BD118C5744B005BCC2B /* littleDing.m4a */; };
+		E9972BDB18C5744B005BCC2B /* gamecenter.png in Resources */ = {isa = PBXBuildFile; fileRef = E9972BD218C5744B005BCC2B /* gamecenter.png */; };
+		E9972BDC18C5744B005BCC2B /* gamecenter@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E9972BD318C5744B005BCC2B /* gamecenter@2x.png */; };
+		E9972BDE18C5793E005BCC2B /* pop.wav in Resources */ = {isa = PBXBuildFile; fileRef = E9972BDD18C5793E005BCC2B /* pop.wav */; };
+		E9972BE018C58486005BCC2B /* gameOverLose.wav in Resources */ = {isa = PBXBuildFile; fileRef = E9972BDF18C58486005BCC2B /* gameOverLose.wav */; };
+		E9972BE318C6C49D005BCC2B /* iTunesArtwork.png in Resources */ = {isa = PBXBuildFile; fileRef = E9972BE118C6C49D005BCC2B /* iTunesArtwork.png */; };
+		E9972BE418C6C49D005BCC2B /* iTunesArtwork@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E9972BE218C6C49D005BCC2B /* iTunesArtwork@2x.png */; };
 		E9AE8F0118B51DAD00132D48 /* fish-0.png in Resources */ = {isa = PBXBuildFile; fileRef = E9AE8EF918B51DAD00132D48 /* fish-0.png */; };
 		E9AE8F0218B51DAD00132D48 /* fish-0@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E9AE8EFA18B51DAD00132D48 /* fish-0@2x.png */; };
 		E9AE8F0318B51DAD00132D48 /* fish-1.png in Resources */ = {isa = PBXBuildFile; fileRef = E9AE8EFB18B51DAD00132D48 /* fish-1.png */; };
@@ -141,6 +154,19 @@
 		E925098618BCFF2700612051 /* InAppPurchaseHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = InAppPurchaseHelper.m; sourceTree = "<group>"; };
 		E925098818BD00D600612051 /* HFFInAppPurchaseHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HFFInAppPurchaseHelper.h; sourceTree = "<group>"; };
 		E925098918BD00D600612051 /* HFFInAppPurchaseHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HFFInAppPurchaseHelper.m; sourceTree = "<group>"; };
+		E9972BCA18C5744B005BCC2B /* ArcadeClassic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = ArcadeClassic.otf; sourceTree = "<group>"; };
+		E9972BCC18C5744B005BCC2B /* backgroundLoop.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = backgroundLoop.m4a; sourceTree = "<group>"; };
+		E9972BCD18C5744B005BCC2B /* backgroundLoop.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = backgroundLoop.wav; sourceTree = "<group>"; };
+		E9972BCE18C5744B005BCC2B /* bubbleUp.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = bubbleUp.m4a; sourceTree = "<group>"; };
+		E9972BCF18C5744B005BCC2B /* crash.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = crash.m4a; sourceTree = "<group>"; };
+		E9972BD018C5744B005BCC2B /* ding.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ding.m4a; sourceTree = "<group>"; };
+		E9972BD118C5744B005BCC2B /* littleDing.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = littleDing.m4a; sourceTree = "<group>"; };
+		E9972BD218C5744B005BCC2B /* gamecenter.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = gamecenter.png; path = Resources/gamecenter.png; sourceTree = "<group>"; };
+		E9972BD318C5744B005BCC2B /* gamecenter@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "gamecenter@2x.png"; path = "Resources/gamecenter@2x.png"; sourceTree = "<group>"; };
+		E9972BDD18C5793E005BCC2B /* pop.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = pop.wav; sourceTree = "<group>"; };
+		E9972BDF18C58486005BCC2B /* gameOverLose.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = gameOverLose.wav; sourceTree = "<group>"; };
+		E9972BE118C6C49D005BCC2B /* iTunesArtwork.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = iTunesArtwork.png; sourceTree = "<group>"; };
+		E9972BE218C6C49D005BCC2B /* iTunesArtwork@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "iTunesArtwork@2x.png"; sourceTree = "<group>"; };
 		E9AE8EF918B51DAD00132D48 /* fish-0.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "fish-0.png"; sourceTree = "<group>"; };
 		E9AE8EFA18B51DAD00132D48 /* fish-0@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "fish-0@2x.png"; sourceTree = "<group>"; };
 		E9AE8EFB18B51DAD00132D48 /* fish-1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "fish-1.png"; sourceTree = "<group>"; };
@@ -289,6 +315,8 @@
 				E911BCD018B2FCC900D8B8EC /* HFFScene.m */,
 				E911BCD218B2FCC900D8B8EC /* Spaceship.png */,
 				E911BCD418B2FCC900D8B8EC /* Images.xcassets */,
+				E9972BE118C6C49D005BCC2B /* iTunesArtwork.png */,
+				E9972BE218C6C49D005BCC2B /* iTunesArtwork@2x.png */,
 				E9B48EE818B81EFD00B50B7E /* Resources */,
 				E911BCBE18B2FCC900D8B8EC /* Supporting Files */,
 				E925098518BCFF2700612051 /* InAppPurchaseHelper.h */,
@@ -310,9 +338,38 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
+		E9972BC918C5744B005BCC2B /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				E9972BCA18C5744B005BCC2B /* ArcadeClassic.otf */,
+			);
+			name = Fonts;
+			path = Resources/Fonts;
+			sourceTree = "<group>";
+		};
+		E9972BCB18C5744B005BCC2B /* Sounds */ = {
+			isa = PBXGroup;
+			children = (
+				E9972BDF18C58486005BCC2B /* gameOverLose.wav */,
+				E9972BDD18C5793E005BCC2B /* pop.wav */,
+				E9972BCC18C5744B005BCC2B /* backgroundLoop.m4a */,
+				E9972BCD18C5744B005BCC2B /* backgroundLoop.wav */,
+				E9972BCE18C5744B005BCC2B /* bubbleUp.m4a */,
+				E9972BCF18C5744B005BCC2B /* crash.m4a */,
+				E9972BD018C5744B005BCC2B /* ding.m4a */,
+				E9972BD118C5744B005BCC2B /* littleDing.m4a */,
+			);
+			name = Sounds;
+			path = Resources/Sounds;
+			sourceTree = "<group>";
+		};
 		E9B48EE818B81EFD00B50B7E /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				E9972BC918C5744B005BCC2B /* Fonts */,
+				E9972BCB18C5744B005BCC2B /* Sounds */,
+				E9972BD218C5744B005BCC2B /* gamecenter.png */,
+				E9972BD318C5744B005BCC2B /* gamecenter@2x.png */,
 				E9E4DF8418BF987100EC8B48 /* AppIcons */,
 				E925097B18BA942700612051 /* scoreBackDrop@2x.png */,
 				E9B48EE618B81E6100B50B7E /* Karmatic Arcade.otf */,
@@ -477,6 +534,8 @@
 				E9E4DFA218BF992400EC8B48 /* Icon-76@2x.png in Resources */,
 				E9B48ECA18B783CE00B50B7E /* playButton.png in Resources */,
 				E9E4DFA418BF992400EC8B48 /* Icon-Small-50@2x.png in Resources */,
+				E9972BDE18C5793E005BCC2B /* pop.wav in Resources */,
+				E9972BD418C5744B005BCC2B /* ArcadeClassic.otf in Resources */,
 				E9B48ED018B783CE00B50B7E /* tap@2x.png in Resources */,
 				E9AE8F0618B51DAD00132D48 /* fish-dead@2x.png in Resources */,
 				E9E4DF8F18BF98CD00EC8B48 /* Icon-40.png in Resources */,
@@ -492,6 +551,8 @@
 				E9E4DF9318BF98CD00EC8B48 /* Icon-Small.png in Resources */,
 				E9B48ECB18B783CE00B50B7E /* pause@2x.png in Resources */,
 				E9B48ED918B808CD00B50B7E /* gameOver@2x.png in Resources */,
+				E9972BDA18C5744B005BCC2B /* littleDing.m4a in Resources */,
+				E9972BD818C5744B005BCC2B /* crash.m4a in Resources */,
 				E9B48EE718B81E6100B50B7E /* Karmatic Arcade.otf in Resources */,
 				E9B48ED118B783CE00B50B7E /* title@2x.png in Resources */,
 				E911BCC218B2FCC900D8B8EC /* InfoPlist.strings in Resources */,
@@ -504,25 +565,34 @@
 				E9B48ECE18B783CE00B50B7E /* play.png in Resources */,
 				E9AE8F0418B51DAD00132D48 /* fish-1@2x.png in Resources */,
 				E9B48EE518B81B5900B50B7E /* share@2x.png in Resources */,
+				E9972BD618C5744B005BCC2B /* backgroundLoop.wav in Resources */,
 				E9AE8F1418B5294400132D48 /* obstacle@2x.png in Resources */,
 				E9E4DFA018BF992400EC8B48 /* Icon-72@2x.png in Resources */,
 				E9AE8F1718B5595F00132D48 /* foreground-fancy.png in Resources */,
+				E9972BE018C58486005BCC2B /* gameOverLose.wav in Resources */,
 				E9B48EE318B81B5800B50B7E /* button@2x.png in Resources */,
+				E9972BD718C5744B005BCC2B /* bubbleUp.m4a in Resources */,
+				E9972BE318C6C49D005BCC2B /* iTunesArtwork.png in Resources */,
 				E925097C18BA942700612051 /* scoreBackDrop@2x.png in Resources */,
+				E9972BD518C5744B005BCC2B /* backgroundLoop.m4a in Resources */,
+				E9972BE418C6C49D005BCC2B /* iTunesArtwork@2x.png in Resources */,
 				E91C281218B6F01800DD5256 /* obstacle-weeds.png in Resources */,
 				E9E4DF9718BF98CD00EC8B48 /* iTunesArtwork.png in Resources */,
 				E9B48ED818B808CD00B50B7E /* gameOver.png in Resources */,
 				E9B48ECC18B783CE00B50B7E /* title.png in Resources */,
+				E9972BDB18C5744B005BCC2B /* gamecenter.png in Resources */,
 				E91C281318B6F01800DD5256 /* obstacle-weeds@2x.png in Resources */,
 				E925098218BAF46200612051 /* rate.png in Resources */,
 				E911BCD518B2FCC900D8B8EC /* Images.xcassets in Resources */,
 				E9E4DF9F18BF992400EC8B48 /* Icon-72.png in Resources */,
+				E9972BDC18C5744B005BCC2B /* gamecenter@2x.png in Resources */,
 				E925098118BAF46200612051 /* buy.png in Resources */,
 				E925098318BAF46200612051 /* rate@2x.png in Resources */,
 				E9AE8F0318B51DAD00132D48 /* fish-1.png in Resources */,
 				E9B48EEB18B8243B00B50B7E /* scorecard.png in Resources */,
 				E9B48EC918B783CE00B50B7E /* playButton@2x.png in Resources */,
 				E9AE8F1018B5267800132D48 /* background@2x.png in Resources */,
+				E9972BD918C5744B005BCC2B /* ding.m4a in Resources */,
 				E9E4DF9618BF98CD00EC8B48 /* Icon@2x.png in Resources */,
 				E911BCD318B2FCC900D8B8EC /* Spaceship.png in Resources */,
 				E911BCCB18B2FCC900D8B8EC /* Main.storyboard in Resources */,

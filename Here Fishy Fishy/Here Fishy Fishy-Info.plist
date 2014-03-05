@@ -27,6 +27,7 @@
 	<key>UIAppFonts</key>
 	<array>
 		<string>Karmatic Arcade.otf</string>
+		<string>ArcadeClassic.otf</string>
 	</array>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>

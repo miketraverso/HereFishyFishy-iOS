@@ -11,13 +11,20 @@
 #import <StoreKit/StoreKit.h>
 #import "HFFInAppPurchaseHelper.h"
 #import <KiipSDK/KiipSDK.h>
+#import <AVFoundation/AVFoundation.h>
 
 typedef NS_ENUM(int, Layer) {
     LayerBackground,
     LayerObstacle,
     LayerForeground,
     LayerFishyFishy,
-    LayerUI
+    LayerUI,
+    LayerGameCenter
+};
+
+typedef NS_ENUM(int, ObstacleType) {
+    ObstacleTop,
+    ObstacleBottom
 };
 
 typedef NS_OPTIONS(int, EntityCategory) {
@@ -38,7 +45,9 @@ static const float kSubsequentObstacleSpawn = 1.5;
 static const float kMargin = 30;
 static const float kAnimDelay = 0.3;
 
-static NSString *const kFontName = @"KarmaticArcade";
+static NSString *const kFontName = @"ArcadeClassic";
+static NSString *const kAppId = @"827463150";
+//static NSString *const kFontName = @"KarmaticArcade";
 //static NSString *const kFontName = @"CourierNewPS-BoldMT";
 
 #define FISHY_MOVE_ANIM @[[SKTexture textureWithImageNamed:@"fish-0"],[SKTexture textureWithImageNamed:@"fish-1"],[SKTexture textureWithImageNamed:@"fish-0"]]
@@ -47,7 +56,7 @@ static NSString *const kFontName = @"KarmaticArcade";
 {
     SKNode *_worldNode;
     SKSpriteNode *_fishyFishy;
-    SKSpriteNode *_okButton, *_shareButton, *_buyButton, *_rateButton;
+    SKSpriteNode *_okButton, *_shareButton, *_buyButton, *_rateButton, *_gamecenterButton;
     CGPoint _fishyVelocity;
     
     float _playableStart;
@@ -56,20 +65,24 @@ static NSString *const kFontName = @"KarmaticArcade";
     NSTimeInterval _lastUpdateTime;
     NSTimeInterval _delta;
     
-    SKAction *_flapAction;
-    SKAction *_dingAction;
-    SKAction *_whackAction;
+    SKAction *_bubbleAction;
+    SKAction *_newHighScoreAction;
+    SKAction *_crashAction;
     SKAction *_fallingAction;
     SKAction *_hitGroundAction;
     SKAction *_popAction;
     SKAction *_coinAction;
+    SKAction *_backgroundAction;
+    SKAction *_gameOverAction;
     
-    BOOL _hitGround, _hitObstacle;
+    BOOL _hitGround, _hitObstacle, _loadedGameOver;
     GameState _gameState;
     
-    SKLabelNode *_score;
+    SKLabelNode *_score, *_scoreShadow;
     NSInteger _bestScore;
     NSInteger _obstaclesPassed;
+    
+    AVAudioPlayer *_player;
 }
 
 -(id)initWithSize:(CGSize)size andDelegate:(id<HFFSceneDelegate>)delegate
@@ -83,6 +96,7 @@ static NSString *const kFontName = @"KarmaticArcade";
         [self.physicsWorld setContactDelegate:self];
         [self.physicsWorld setGravity:CGVectorMake(0, 0)];
 
+        _loadedGameOver = NO;
         [self switchToTutorial];
     }
     return self;
@@ -91,7 +105,7 @@ static NSString *const kFontName = @"KarmaticArcade";
 #pragma mark - Gameplay
 -(void)flapFishy
 {
-    [self runAction:_flapAction];
+    [self runAction:_bubbleAction];
     
     SKAction *walk = [SKAction animateWithTextures:FISHY_MOVE_ANIM timePerFrame:0.05];
     [_fishyFishy runAction:walk];
@@ -101,7 +115,6 @@ static NSString *const kFontName = @"KarmaticArcade";
 
 -(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    
     UITouch *touch = [touches anyObject];
     CGPoint touchLocation = [touch locationInNode:self];
     
@@ -109,7 +122,15 @@ static NSString *const kFontName = @"KarmaticArcade";
         case GameStateMainMenu:
             break;
         case GameStateTutorial:
-            [self switchToPlay];
+            [_fishyFishy removeAllActions];
+            if ([_gamecenterButton containsPoint:touchLocation])
+            {
+                [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"gamecenter:/me/account"]];
+            }
+            else
+            {
+                [self switchToPlay];
+            }
             break;
         case GameStatePlay:
             [self flapFishy];
@@ -119,25 +140,28 @@ static NSString *const kFontName = @"KarmaticArcade";
         case GameStateShowingScore:
             break;
         case GameStateGameOver:
-            if ([_okButton containsPoint:touchLocation])
+            if (_okButton.alpha == 1.0)
             {
-                [self switchToNewGame];
+                if ([_okButton containsPoint:touchLocation])
+                {
+                    [self switchToNewGame];
+                }
+                if ([_shareButton containsPoint:touchLocation])
+                {
+                    [self shareScore];
+                }
+                if ([_rateButton containsPoint:touchLocation])
+                {
+                    // Go to rate page
+                    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"itms-apps://itunes.apple.com/app/id%@", kAppId]]];
+                }
+                if ([_buyButton containsPoint:touchLocation])
+                {
+                    // Make purchase
+                    [self buyButtonTapped];
+                }
+                _loadedGameOver = NO;
             }
-            if ([_shareButton containsPoint:touchLocation])
-            {
-                [self shareScore];
-            }
-            if ([_rateButton containsPoint:touchLocation])
-            {
-                // Go to rate page
-                [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"itms-apps://itunes.apple.com/app/id493350516"]];
-            }
-            if ([_buyButton containsPoint:touchLocation])
-            {
-                // Make purchase
-                [self buyButtonTapped];
-            }
-
             break;
     }
 }
@@ -146,19 +170,30 @@ static NSString *const kFontName = @"KarmaticArcade";
 #pragma mark - Updates
 -(void)updateScore
 {
-    [_worldNode enumerateChildNodesWithName:@"Obstacle" usingBlock:^(SKNode *node, BOOL *stop) {
+    [_worldNode enumerateChildNodesWithName:@"ObstacleTop" usingBlock:^(SKNode *node, BOOL *stop) {
         SKSpriteNode *obstacle = (SKSpriteNode*)node;
         NSNumber *passed = obstacle.userData[@"passed"];
         
         if (passed && passed.boolValue)
             return;
         
-        if (_fishyFishy.position.x > obstacle.position.x - obstacle.size.width/2)
+        if (_fishyFishy.position.x > obstacle.position.x - obstacle.size.width/2 + 30)
         {
             ++_obstaclesPassed;
             // Divide obstacles passed by 2 because each obstacle has a top and bottom
             [_score setText:[NSString stringWithFormat:@"%d", [self getScore]]];
+            [_scoreShadow setText:[NSString stringWithFormat:@"%d", [self getScore]]];
+            
             obstacle.userData[@"passed"] = @YES;
+            
+            if ([self getScore] == 1+[self getBestScore])
+            {
+                [self runAction:_newHighScoreAction withKey:@"NewHighScore"];
+            }
+            else
+            {
+                [self runAction:_coinAction withKey:@"Coin"];
+            }
         }
     }];
 }
@@ -212,6 +247,7 @@ static NSString *const kFontName = @"KarmaticArcade";
     {
         _hitGround = NO;
         _fishyVelocity = CGPointZero;
+        [self runAction:_crashAction withKey:@"Crash"];
         [self switchScoreState];
     }
 }
@@ -222,6 +258,7 @@ static NSString *const kFontName = @"KarmaticArcade";
     {
         _hitObstacle = NO;
         _fishyVelocity = CGPointZero;
+        [self runAction:_crashAction withKey:@"Crash"];
         [self switchScoreState];
     }
 }
@@ -265,11 +302,14 @@ static NSString *const kFontName = @"KarmaticArcade";
 }
 
 #pragma mark - Obstacles
-- (SKSpriteNode*)createObstacle
+- (SKSpriteNode*)createObstacle:(ObstacleType)obstacleType_
 {
     SKSpriteNode *obstacle = [SKSpriteNode spriteNodeWithImageNamed:@"obstacle-weeds"];
     [obstacle setZPosition:LayerObstacle];
-    [obstacle setName:@"Obstacle"];
+    if (obstacleType_ == ObstacleTop)
+        [obstacle setName:@"ObstacleTop"];
+    else
+        [obstacle setName:@"ObstacleBottom"];
     [obstacle setUserData:[NSMutableDictionary dictionary]];
     
     CGFloat offsetX = obstacle.frame.size.width * obstacle.anchorPoint.x;
@@ -312,7 +352,10 @@ static NSString *const kFontName = @"KarmaticArcade";
 - (void)stopSpawningObstacles
 {
     [self removeActionForKey:@"Spawn"];
-    [_worldNode enumerateChildNodesWithName:@"Obstacle" usingBlock:^(SKNode *node, BOOL *stop) {
+    [_worldNode enumerateChildNodesWithName:@"ObstacleTop" usingBlock:^(SKNode *node, BOOL *stop) {
+        [node removeAllActions];
+    }];
+    [_worldNode enumerateChildNodesWithName:@"ObstacleBottom" usingBlock:^(SKNode *node, BOOL *stop) {
         [node removeAllActions];
     }];
 
@@ -320,8 +363,8 @@ static NSString *const kFontName = @"KarmaticArcade";
 
 - (void)spawnObstacle
 {
-    SKSpriteNode *bottomObstacle = [self createObstacle];
-    SKSpriteNode *topObstacle = [self createObstacle];
+    SKSpriteNode *bottomObstacle = [self createObstacle:ObstacleBottom];
+    SKSpriteNode *topObstacle = [self createObstacle:ObstacleTop];
     
     float startX = self.size.width + bottomObstacle.size.width/2;
     float bottomObstacleMin = (_playableStart - bottomObstacle.size.height / 2) + _playableHeight * kBottomObstacleMinFraction;
@@ -351,18 +394,26 @@ static NSString *const kFontName = @"KarmaticArcade";
     [_fishyFishy removeAllActions];
     [self stopSpawningObstacles];
     
+    SKAction *moveRight = [SKAction moveToX:-35 duration:.10];
+    SKAction *moveLeft = [SKAction moveToX: 35 duration:.10];
+    SKAction *moveCenter = [SKAction moveToX:0 duration:.10];
+    SKAction *shakeSequence = [SKAction sequence:@[moveRight, moveLeft, moveRight, moveLeft, moveCenter]];
+    [_worldNode runAction:shakeSequence];
+    
     SKAction *deadAction = [SKAction setTexture:[SKTexture textureWithImageNamed:@"fish-dead"]];
     SKAction *rotateAction = [SKAction rotateByAngle:DegreesToRadians(180) duration:0.5];
     SKAction *moveToSurfaceAction = [SKAction moveToY:self.size.height - _fishyFishy.size.height/2 duration:1.5];
     SKAction *moveToSurfaceAction2 = [SKAction moveToY:self.size.height - _fishyFishy.size.height duration:0.5];
     SKAction *moveToSurfaceAction3 = [SKAction moveToY:self.size.height - _fishyFishy.size.height/2 duration:0.5];
     SKAction *sequence = [SKAction sequence:@[deadAction, rotateAction, moveToSurfaceAction, moveToSurfaceAction2, moveToSurfaceAction3]];
-    [_fishyFishy runAction:sequence];
 
+    [_fishyFishy runAction:sequence];
+    
     [self setupScoreCard];
 }
 
-- (void)switchToFalling {
+- (void)switchToFalling
+{
     _gameState = GameStateFalling;
     [self stopSpawningObstacles];
 }
@@ -374,7 +425,15 @@ static NSString *const kFontName = @"KarmaticArcade";
     [self.view presentScene:newScene transition:transition];
 }
 
-- (void)switchToGameOver {
+- (void)switchToGameOver
+{
+    while (_player.volume > 0)
+    {
+        _player.volume = _player.volume - 0.25;
+    }
+    
+    [_player stop];
+    [self runAction:_gameOverAction withKey:@"GameOver"];
     _gameState = GameStateGameOver;
 }
 
@@ -382,6 +441,8 @@ static NSString *const kFontName = @"KarmaticArcade";
     
     // Set state
     _gameState = GameStatePlay;
+    
+    [self addScoreToUI];
     
     // Remove tutorial
     [_worldNode enumerateChildNodesWithName:@"Tutorial" usingBlock:^(SKNode *node, BOOL *stop) {
@@ -391,9 +452,20 @@ static NSString *const kFontName = @"KarmaticArcade";
                                              ]]];
     }];
     
+    [_worldNode enumerateChildNodesWithName:@"GameCenter" usingBlock:^(SKNode *node, BOOL *stop) {
+        [node runAction:[SKAction sequence:@[
+                                             [SKAction fadeOutWithDuration:0.5],
+                                             [SKAction removeFromParent]
+                                             ]]];
+    }];
+
+    
     // Remove wobble
     [_fishyFishy removeActionForKey:@"Wobble"];
     
+    [_player setNumberOfLoops:-1];
+    [_player play];
+
     // Start spawning
     [self startSpawningObstacles];
     
@@ -407,12 +479,19 @@ static NSString *const kFontName = @"KarmaticArcade";
     [self setupBackground];
     [self setupForeground];
     [self setupFishyFishy];
-    //    [self setupSounds];
+    [self setupSounds];
     [self setupScore];
     
     
+    [_fishyFishy removeAllActions];
+    
+    SKAction *moveToSurfaceAction = [SKAction moveToY:_playableHeight * 0.7 + _playableStart duration:0.5];
+    SKAction *flap = [SKAction animateWithTextures:FISHY_MOVE_ANIM timePerFrame:0.05];
+    SKAction *moveToSurfaceAction2 = [SKAction moveToY:_playableHeight * 0.65 + _playableStart duration:0.5];
+    SKAction *sequence = [SKAction sequence:@[flap, moveToSurfaceAction, flap, moveToSurfaceAction2 ]];
     [self flapFishy];
-    [self flapFishy];
+    [_fishyFishy runAction:[SKAction repeatActionForever:sequence]];
+
     [self setupTutorial];
 }
 
@@ -503,13 +582,30 @@ static NSString *const kFontName = @"KarmaticArcade";
 #pragma mark - Setup
 - (void)setupScore
 {
+    _scoreShadow = [[SKLabelNode alloc] initWithFontNamed:kFontName];
+    [_scoreShadow setFontColor:[SKColor whiteColor]];
+    _scoreShadow.fontSize = 41;
+    [_scoreShadow setPosition:CGPointMake(self.size.width/2-2, self.size.height+1 - kMargin)];
+    [_scoreShadow setText:@"0"];
+    [_scoreShadow setVerticalAlignmentMode:SKLabelVerticalAlignmentModeTop];
+    [_scoreShadow setZPosition:LayerUI];
+    
     _score = [[SKLabelNode alloc] initWithFontNamed:kFontName];
     [_score setFontColor:[SKColor blackColor]];
+    _score.fontSize = 41;
     [_score setPosition:CGPointMake(self.size.width/2, self.size.height - kMargin)];
     [_score setText:@"0"];
     [_score setVerticalAlignmentMode:SKLabelVerticalAlignmentModeTop];
     [_score setZPosition:LayerUI];
+}
+
+- (void)addScoreToUI
+{
+    [_score runAction:[SKAction fadeInWithDuration:1.5]];
+    [_scoreShadow runAction:[SKAction fadeInWithDuration:1.5]];
+    
     [_worldNode addChild:_score];
+    [_worldNode addChild:_scoreShadow];
 }
 
 - (void)setupBackground
@@ -579,6 +675,19 @@ static NSString *const kFontName = @"KarmaticArcade";
 
 - (void)setupScoreCard
 {
+    SKAction *pops = [SKAction sequence:@[
+                                          [SKAction waitForDuration:kAnimDelay],
+                                          _popAction,
+                                          [SKAction waitForDuration:kAnimDelay],
+                                          _popAction,
+                                          [SKAction waitForDuration:kAnimDelay*.02],
+                                          _popAction,
+                                          [SKAction runBlock:^{
+        [self switchToGameOver];
+    }]
+                                          ]];
+    [self runAction:pops];
+    
     if ([self getScore] > [self getBestScore])
     {
         [self setBestScore];
@@ -589,21 +698,36 @@ static NSString *const kFontName = @"KarmaticArcade";
         [self showKiipRewardForObstacles];
     }
     
-    
     SKSpriteNode *scorecard = [SKSpriteNode spriteNodeWithImageNamed:@"scorecard"];
     scorecard.position = CGPointMake(self.size.width * 0.5, self.size.height/2);
     scorecard.name = @"Tutorial";
     scorecard.zPosition = LayerUI;
     [_worldNode addChild:scorecard];
     
+    SKLabelNode *lastScoreShadow = [[SKLabelNode alloc] initWithFontNamed:kFontName];
+    lastScoreShadow.fontColor = [SKColor blackColor];
+    lastScoreShadow.fontSize = 41;
+    lastScoreShadow.position = CGPointMake(-scorecard.size.width * 0.25+ 2, -scorecard.size.height * 0.2 - 1);
+    lastScoreShadow.text = [NSString stringWithFormat:@"%d", [self getScore]];
+    [scorecard addChild:lastScoreShadow];
+    
+    SKLabelNode *bestScoreShadow = [[SKLabelNode alloc] initWithFontNamed:kFontName];
+    bestScoreShadow.fontColor = [SKColor blackColor];
+    bestScoreShadow.fontSize = 41;
+    bestScoreShadow.position = CGPointMake(scorecard.size.width * 0.25 + 2, -scorecard.size.height * 0.2 - 1);
+    bestScoreShadow.text = [NSString stringWithFormat:@"%d", [self getBestScore]];
+    [scorecard addChild:bestScoreShadow];
+
     SKLabelNode *lastScore = [[SKLabelNode alloc] initWithFontNamed:kFontName];
     lastScore.fontColor = [SKColor whiteColor];
+    lastScore.fontSize = 40;
     lastScore.position = CGPointMake(-scorecard.size.width * 0.25, -scorecard.size.height * 0.2);
     lastScore.text = [NSString stringWithFormat:@"%d", [self getScore]];
     [scorecard addChild:lastScore];
     
     SKLabelNode *bestScore = [[SKLabelNode alloc] initWithFontNamed:kFontName];
     bestScore.fontColor = [SKColor whiteColor];
+    bestScore.fontSize = 40;
     bestScore.position = CGPointMake(scorecard.size.width * 0.25, -scorecard.size.height * 0.2);
     bestScore.text = [NSString stringWithFormat:@"%d", [self getBestScore]];
     [scorecard addChild:bestScore];
@@ -671,7 +795,7 @@ static NSString *const kFontName = @"KarmaticArcade";
     [scorecard runAction:[SKAction sequence:@[
                                               [SKAction waitForDuration:kAnimDelay*2],
                                               moveTo
-                                              ]]];
+                                              ]] completion:^{ }];
     
     _okButton.alpha = 0;
     _shareButton.alpha = 0;
@@ -684,37 +808,26 @@ static NSString *const kFontName = @"KarmaticArcade";
     [_okButton runAction:fadeIn];
     [_shareButton runAction:fadeIn];
     [_rateButton runAction:fadeIn];
-    [_buyButton runAction:fadeIn];
-    SKAction *pops = [SKAction sequence:@[
-//                                          [SKAction waitForDuration:kAnimDelay],
-//                                          _popAction,
-//                                          [SKAction waitForDuration:kAnimDelay],
-//                                          _popAction,
-//                                          [SKAction waitForDuration:kAnimDelay],
-//                                          _popAction,
-                                          [SKAction runBlock:^{
-        [self switchToGameOver];
-    }]
-                                          ]];
-    [self runAction:pops];
+    [_buyButton runAction:fadeIn completion:^{ _loadedGameOver = YES; }];
 }
 
 - (void)setupSounds
 {
-    _dingAction = [SKAction playSoundFileNamed:@"ding.wav" waitForCompletion:NO];
-    _flapAction = [SKAction playSoundFileNamed:@"flap.wav" waitForCompletion:NO];
-    _whackAction = [SKAction playSoundFileNamed:@"whack.wav" waitForCompletion:NO];
-    _fallingAction = [SKAction playSoundFileNamed:@"fall.wav" waitForCompletion:NO];
-    _hitGroundAction = [SKAction playSoundFileNamed:@"ground.wav" waitForCompletion:NO];
+    _newHighScoreAction = [SKAction playSoundFileNamed:@"ding.m4a" waitForCompletion:NO];
+    _bubbleAction = [SKAction playSoundFileNamed:@"bubbleUp.m4a" waitForCompletion:NO];
+    _crashAction = [SKAction playSoundFileNamed:@"crash.m4a" waitForCompletion:NO];
+    _coinAction = [SKAction playSoundFileNamed:@"littleDing.m4a" waitForCompletion:NO];
     _popAction = [SKAction playSoundFileNamed:@"pop.wav" waitForCompletion:NO];
-    _coinAction = [SKAction playSoundFileNamed:@"coin.wav" waitForCompletion:NO];
+    _gameOverAction = [SKAction playSoundFileNamed:@"gameOverLose.wav" waitForCompletion:NO];
+    NSURL *url = [NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"backgroundLoop" ofType:@"m4a"]];
+    _player = [[AVAudioPlayer alloc] initWithContentsOfURL:url error:nil];
+
 }
 
 - (void)setupTutorial
 {
     SKSpriteNode *tutorial = [SKSpriteNode spriteNodeWithImageNamed:@"tap"];
-    tutorial.position = CGPointMake((int)self.size.width * 0.5, _playableStart - _playableStart * 0.3
-                                    );
+    tutorial.position = CGPointMake((int)self.size.width * 0.5, _playableStart - _playableStart * 0.3);
     tutorial.name = @"Tutorial";
     tutorial.zPosition = LayerUI;
     [_worldNode addChild:tutorial];
@@ -733,6 +846,12 @@ static NSString *const kFontName = @"KarmaticArcade";
     ready.name = @"Tutorial";
     ready.zPosition = LayerUI;
     [_worldNode addChild:ready];
+    
+    _gamecenterButton = [SKSpriteNode spriteNodeWithImageNamed:@"gamecenter"];
+    _gamecenterButton.position = CGPointMake(self.size.width * 0.5, self.size.height * 0.85 );
+    _gamecenterButton.name = @"GameCenter";
+    _gamecenterButton.zPosition = LayerGameCenter;
+    [_worldNode addChild:_gamecenterButton];
 }
 
 
@@ -768,7 +887,7 @@ static NSString *const kFontName = @"KarmaticArcade";
 
 - (NSInteger)getScore
 {
-    return _obstaclesPassed/2 ;
+    return _obstaclesPassed;
 }
 
 - (void) reportScore:(int64_t)score forLeaderboardID: (NSString*) identifier
@@ -790,7 +909,7 @@ static NSString *const kFontName = @"KarmaticArcade";
 #pragma mark - Share Score
 - (void)shareScore {
     
-    NSString *urlString = [NSString stringWithFormat:@"http://itunes.apple.com/app/id%d?mt=8", 384800918]; //APP_STORE_ID];
+    NSString *urlString = [NSString stringWithFormat:@"http://itunes.apple.com/app/id%@?mt=8", kAppId]; //APP_STORE_ID];
     NSURL *url = [NSURL URLWithString:urlString];
     
     UIImage *screenshot = [self.delegate screenshot];
