@@ -46,7 +46,7 @@
         if (success)
         {
             _products = products;
-            if ([[HFFInAppPurchaseHelper sharedInstance] productPurchased:@"com.traversoft.hff.noads"])
+            if ([[HFFInAppPurchaseHelper sharedInstance] productPurchased:@"com.traversoft.hff.no.ads"])
             {
                 _shouldShowAds = NO;
                 self.canDisplayBannerAds = _shouldShowAds;

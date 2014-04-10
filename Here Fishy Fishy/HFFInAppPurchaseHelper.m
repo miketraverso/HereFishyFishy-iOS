@@ -16,7 +16,7 @@
     static HFFInAppPurchaseHelper * sharedInstance;
     dispatch_once(&once, ^{
         NSSet * productIdentifiers = [NSSet setWithObjects:
-                                      @"com.traversoft.hff.noads",
+                                      @"com.traversoft.hff.no.ads",
                                       nil];
         sharedInstance = [[self alloc] initWithProductIdentifiers:productIdentifiers];
     });

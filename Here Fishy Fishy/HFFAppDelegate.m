@@ -14,11 +14,12 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     [HFFInAppPurchaseHelper sharedInstance];
-
+    [self restorePurchases];
+    
     Kiip *kiip = [[Kiip alloc] initWithAppKey:@"467748b0b19978c496eb7bf8ae4f4b3c" andSecret:@"34275e8cbdf01b74cf3e58bb924b4d19"];
     kiip.delegate = self;
     [Kiip setSharedInstance:kiip];
-
+    
     // Override point for customization after application launch.
     return YES;
 }
@@ -38,6 +39,7 @@
 - (void)applicationWillEnterForeground:(UIApplication *)application
 {
     // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
+    [self restorePurchases];
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application
@@ -50,4 +52,14 @@
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
 }
 
+- (void)restorePurchases
+{
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:@"restoreAllPurchases"])
+    {
+        BOOL shouldRestore = [[NSUserDefaults standardUserDefaults] boolForKey:@"restoreAllPurchases"];
+        
+        if (shouldRestore)
+            [[HFFInAppPurchaseHelper sharedInstance] restoreCompletedTransactions];
+    }
+}
 @end

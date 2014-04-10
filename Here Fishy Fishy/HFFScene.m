@@ -56,7 +56,7 @@ static NSString *const kAppId = @"827463150";
 {
     SKNode *_worldNode;
     SKSpriteNode *_fishyFishy;
-    SKSpriteNode *_okButton, *_shareButton, *_buyButton, *_rateButton, *_gamecenterButton;
+    SKSpriteNode *_okButton, *_shareButton, *_buyButton, *_rateButton, *_gamecenterButton, *_restoreButton;
     CGPoint _fishyVelocity;
     
     float _playableStart;
@@ -82,7 +82,15 @@ static NSString *const kAppId = @"827463150";
     NSInteger _bestScore;
     NSInteger _obstaclesPassed;
     
+    UIAlertView *_restoreAlert;
+    BOOL _isRestoreAlertShowing;
+    
     AVAudioPlayer *_player;
+}
+
+- (void)dealloc
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 -(id)initWithSize:(CGSize)size andDelegate:(id<HFFSceneDelegate>)delegate
@@ -95,6 +103,12 @@ static NSString *const kAppId = @"827463150";
         [self addChild:_worldNode];
         [self.physicsWorld setContactDelegate:self];
         [self.physicsWorld setGravity:CGVectorMake(0, 0)];
+
+        _restoreAlert = [[UIAlertView alloc] initWithTitle:@"" message:@"" delegate:nil cancelButtonTitle:@"OK" otherButtonTitles: nil];
+        _isRestoreAlertShowing = false;
+        [_restoreAlert setDelegate:self];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(restoreFailed) name:@"RestoreTransactionFailed" object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(restoreSuccess) name:@"RestoreTransactionSuccessful" object:nil];
 
         _loadedGameOver = NO;
         [self switchToTutorial];
@@ -152,6 +166,7 @@ static NSString *const kAppId = @"827463150";
                 }
                 if ([_rateButton containsPoint:touchLocation])
                 {
+                    NSURL *appUrl = [NSURL URLWithString:[NSString stringWithFormat:@"itms-apps://itunes.apple.com/app/id%@", kAppId]];
                     // Go to rate page
                     [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"itms-apps://itunes.apple.com/app/id%@", kAppId]]];
                 }
@@ -159,6 +174,11 @@ static NSString *const kAppId = @"827463150";
                 {
                     // Make purchase
                     [self buyButtonTapped];
+                }
+                if ([_restoreButton containsPoint:touchLocation])
+                {
+                    // Restore purchases
+                    [self restorePurchases];
                 }
                 _loadedGameOver = NO;
             }
@@ -688,14 +708,22 @@ static NSString *const kAppId = @"827463150";
                                           ]];
     [self runAction:pops];
     
+    BOOL KiipRewardsOn = YES;
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:@"kiipRewards"])
+    {
+        KiipRewardsOn = [[NSUserDefaults standardUserDefaults] boolForKey:@"kiipRewards"];
+    }
+    
     if ([self getScore] > [self getBestScore])
     {
         [self setBestScore];
-        [self showKiipRewardForNewHighScore];
+        if (!KiipRewardsOn)
+            [self showKiipRewardForNewHighScore];
     }
     else
     {
-        [self showKiipRewardForObstacles];
+        if (!KiipRewardsOn)
+            [self showKiipRewardForObstacles];
     }
     
     SKSpriteNode *scorecard = [SKSpriteNode spriteNodeWithImageNamed:@"scorecard"];
@@ -733,7 +761,7 @@ static NSString *const kAppId = @"827463150";
     [scorecard addChild:bestScore];
     
     SKSpriteNode *gameOver = [SKSpriteNode spriteNodeWithImageNamed:@"gameOver"];
-    gameOver.position = CGPointMake(self.size.width/2, self.size.height/2 + scorecard.size.height/2 + kMargin + gameOver.size.height/2);
+    gameOver.position = CGPointMake(self.size.width/2, self.size.height/2 + scorecard.size.height/2 - 10 + kMargin + gameOver.size.height/2);
     gameOver.zPosition = LayerUI;
     [_worldNode addChild:gameOver];
     
@@ -760,22 +788,46 @@ static NSString *const kAppId = @"827463150";
     _buyButton = [SKSpriteNode spriteNodeWithImageNamed:@"button"];
     _buyButton.position = CGPointMake(self.size.width * 0.25, self.size.height/2 - scorecard.size.height/2 - 3.3 * kMargin - _buyButton.size.height/2);
     _buyButton.zPosition = LayerUI;
-    [_worldNode addChild:_buyButton];
+
     
-    SKSpriteNode *buy = [SKSpriteNode spriteNodeWithImageNamed:@"buy"];
-    buy.position = CGPointZero;
-    buy.zPosition = LayerUI;
-    [_buyButton addChild:buy];
+    SKSpriteNode *removeAdsNode = [SKSpriteNode spriteNodeWithImageNamed:@"removeads"];
+    removeAdsNode.position = CGPointZero;
+    removeAdsNode.zPosition = LayerUI;
+    
+    SKProduct *product = [[self.delegate getProducts] objectAtIndex:0]; // Only one IAP to buy  - Remove ads
+    if (product)
+    {
+        if (![[HFFInAppPurchaseHelper sharedInstance] productPurchased:@"com.traversoft.hff.no.ads"])
+        {
+            [_worldNode addChild:_buyButton];
+            [_buyButton addChild:removeAdsNode];
+        }
+    }
+    
+    _restoreButton = [SKSpriteNode spriteNodeWithImageNamed:@"button"];
+    _restoreButton.position = CGPointMake(self.size.width/2-2, self.size.height+1 - kMargin - 20);//CGPointMake(self.size.width * 0.25, self.size.height/2 - scorecard.size.height/2 - 3.3 * kMargin - _buyButton.size.height/2);
+    _restoreButton.zPosition = LayerUI;
+    [_worldNode addChild:_restoreButton];
+
+    SKSpriteNode *restore = [SKSpriteNode spriteNodeWithImageNamed:@"restore"];
+    restore.position = CGPointZero;
+    restore.zPosition = LayerUI;
+    [_restoreButton addChild:restore];
 
     _rateButton = [SKSpriteNode spriteNodeWithImageNamed:@"button"];
     _rateButton.position = CGPointMake(self.size.width * 0.75, self.size.height/2 - scorecard.size.height/2 - 3.3 * kMargin - _rateButton.size.height/2);
     _rateButton.zPosition = LayerUI;
-    [_worldNode addChild:_rateButton];
     
     SKSpriteNode *rate = [SKSpriteNode spriteNodeWithImageNamed:@"rate"];
     rate.position = CGPointZero;
     rate.zPosition = LayerUI;
-    [_rateButton addChild:rate];
+
+//    NSURL *appUrl = [NSURL URLWithString:[NSString stringWithFormat:@"itms-apps://itunes.apple.com/app/id%@", kAppId]];
+//    if ([[UIApplication sharedApplication] canOpenURL:appUrl])
+//    {
+        [_worldNode addChild:_rateButton];
+        [_rateButton addChild:rate];
+//    }
 
     gameOver.scale = 0;
     gameOver.alpha = 0;
@@ -801,13 +853,19 @@ static NSString *const kAppId = @"827463150";
     _shareButton.alpha = 0;
     _rateButton.alpha = 0;
     _buyButton.alpha = 0;
+    _restoreButton.alpha = 0;
     SKAction *fadeIn = [SKAction sequence:@[
                                             [SKAction waitForDuration:kAnimDelay*3],
+                                            [SKAction fadeInWithDuration:kAnimDelay]
+                                            ]];
+    SKAction *fadeInSlow = [SKAction sequence:@[
+                                            [SKAction waitForDuration:kAnimDelay*5],
                                             [SKAction fadeInWithDuration:kAnimDelay]
                                             ]];
     [_okButton runAction:fadeIn];
     [_shareButton runAction:fadeIn];
     [_rateButton runAction:fadeIn];
+    [_restoreButton runAction:fadeInSlow];
     [_buyButton runAction:fadeIn completion:^{ _loadedGameOver = YES; }];
 }
 
@@ -925,8 +983,60 @@ static NSString *const kAppId = @"827463150";
     
     if (product)
     {
-        NSLog(@"Buying %@...", product.productIdentifier);
-        [[HFFInAppPurchaseHelper sharedInstance] buyProduct:product];   
+        if (![[HFFInAppPurchaseHelper sharedInstance] productPurchased:@"com.traversoft.hff.no.ads"])
+        {
+            NSLog(@"Buying %@...", product.productIdentifier);
+            [[HFFInAppPurchaseHelper sharedInstance] buyProduct:product];
+        }
+    }
+    else
+    {
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Oops..." message:@"Something went wrong. Please try your purchase again in a few." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles: nil];
+        [alert show];
     }
 }
+
+- (void)restorePurchases
+{
+    SKProduct *product = [[self.delegate getProducts] objectAtIndex:0]; // Only one IAP to buy  - Remove ads
+    
+    if (product)
+    {
+        NSLog(@"Restoring %@...", product.productIdentifier);
+        [[HFFInAppPurchaseHelper sharedInstance] restoreCompletedTransactions];
+    }
+    else
+    {
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Oops..." message:@"Something went wrong. Please try your restoring your purchases in a few." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles: nil];
+        [alert show];
+    }
+}
+
+- (void)restoreSuccess
+{
+    _restoreAlert.title = @"Success";
+    _restoreAlert.message = @"Restored purchase";
+    if (!_isRestoreAlertShowing)
+    {
+        _isRestoreAlertShowing = true;
+        [_restoreAlert show];
+    }
+}
+
+- (void)restoreFailure
+{
+    _restoreAlert.title = @"Oops...";
+    _restoreAlert.message = @"Error restoring purchase. Please try again.";
+    if (!_isRestoreAlertShowing)
+    {
+        _isRestoreAlertShowing = true;
+        [_restoreAlert show];
+    }
+}
+
+- (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex
+{
+    _isRestoreAlertShowing = false;
+}
+
 @end

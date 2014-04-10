@@ -62,8 +62,7 @@ NSString *const IAPHelperProductPurchasedNotification = @"IAPHelperProductPurcha
 
 #pragma mark - SKProductsRequestDelegate
 
-- (void)productsRequest:(SKProductsRequest *)request
-     didReceiveResponse:(SKProductsResponse *)response
+- (void)productsRequest:(SKProductsRequest *)request didReceiveResponse:(SKProductsResponse *)response
 {
     
     NSLog(@"Loaded list of products...");
@@ -125,6 +124,22 @@ NSString *const IAPHelperProductPurchasedNotification = @"IAPHelperProductPurcha
     };
 }
 
+- (void)paymentQueueRestoreCompletedTransactionsFinished:(SKPaymentQueue *)queue
+{
+    NSLog(@"Received restored transactions: %i", queue.transactions.count);
+    for (SKPaymentTransaction *transaction in queue.transactions)
+    {
+        [self restoreTransaction:transaction];
+        NSLog(@"Restored Transaction...");
+    }
+}
+
+- (void)paymentQueue:(SKPaymentQueue *)queue restoreCompletedTransactionsFailedWithError:(NSError *)error
+{
+    NSLog(@"Restored Transaction Failed...");
+    NSLog(@"Error %@", [error userInfo]);
+}
+
 - (void)completeTransaction:(SKPaymentTransaction *)transaction
 {
     NSLog(@"completeTransaction...");
@@ -133,22 +148,23 @@ NSString *const IAPHelperProductPurchasedNotification = @"IAPHelperProductPurcha
     [[SKPaymentQueue defaultQueue] finishTransaction:transaction];
 }
 
-- (void)restoreTransaction:(SKPaymentTransaction *)transaction {
-    NSLog(@"restoreTransaction...");
-    
+- (void)restoreTransaction:(SKPaymentTransaction *)transaction
+{
     [self provideContentForProductIdentifier:transaction.originalTransaction.payment.productIdentifier];
     [[SKPaymentQueue defaultQueue] finishTransaction:transaction];
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"RestoreTransactionSuccessful" object:nil];
 }
 
-- (void)failedTransaction:(SKPaymentTransaction *)transaction {
-    
-    NSLog(@"failedTransaction...");
+- (void)failedTransaction:(SKPaymentTransaction *)transaction
+{    
     if (transaction.error.code != SKErrorPaymentCancelled)
     {
         NSLog(@"Transaction error: %@", transaction.error.localizedDescription);
     }
     
     [[SKPaymentQueue defaultQueue] finishTransaction: transaction];
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"RestoreTransactionFailed" object:nil];
 }
 
 - (void)provideContentForProductIdentifier:(NSString *)productIdentifier {
@@ -160,5 +176,9 @@ NSString *const IAPHelperProductPurchasedNotification = @"IAPHelperProductPurcha
     
 }
 
+- (void)restoreCompletedTransactions
+{
+    [[SKPaymentQueue defaultQueue] restoreCompletedTransactions];
+}
 
 @end

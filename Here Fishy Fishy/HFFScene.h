@@ -24,7 +24,7 @@ typedef NS_ENUM(int, GameState) {
 @end
 
 
-@interface HFFScene : SKScene<SKPhysicsContactDelegate>
+@interface HFFScene : SKScene<SKPhysicsContactDelegate, UIAlertViewDelegate>
 -(id)initWithSize:(CGSize)size andDelegate:(id<HFFSceneDelegate>)delegate;
 @property (strong, nonatomic) id<HFFSceneDelegate> delegate;
 
