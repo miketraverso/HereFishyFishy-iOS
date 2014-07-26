@@ -16,9 +16,9 @@
     [HFFInAppPurchaseHelper sharedInstance];
     [self restorePurchases];
     
-    Kiip *kiip = [[Kiip alloc] initWithAppKey:@"467748b0b19978c496eb7bf8ae4f4b3c" andSecret:@"34275e8cbdf01b74cf3e58bb924b4d19"];
-    kiip.delegate = self;
-    [Kiip setSharedInstance:kiip];
+//    Kiip *kiip = [[Kiip alloc] initWithAppKey:@"467748b0b19978c496eb7bf8ae4f4b3c" andSecret:@"34275e8cbdf01b74cf3e58bb924b4d19"];
+//    kiip.delegate = self;
+//    [Kiip setSharedInstance:kiip];
     
     // Override point for customization after application launch.
     return YES;

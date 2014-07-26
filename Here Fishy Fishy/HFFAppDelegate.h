@@ -8,9 +8,9 @@
 
 #import <UIKit/UIKit.h>
 #import "GameCenterManager.h"
-#import <KiipSDK/KiipSDK.h>
+//#import <KiipSDK/KiipSDK.h>
 
-@interface HFFAppDelegate : UIResponder <UIApplicationDelegate,KiipDelegate>
+@interface HFFAppDelegate : UIResponder <UIApplicationDelegate>//,KiipDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
 @property (strong, nonatomic) GameCenterManager *gameCenterManager;

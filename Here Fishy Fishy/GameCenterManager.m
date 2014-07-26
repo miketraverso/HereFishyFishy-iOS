@@ -53,7 +53,7 @@
 {
 	NSMutableDictionary* earnedAchievementCache;
 	
-	id <GameCenterManagerDelegate, NSObject> delegate;
+	id <GameCenterManagerDelegate, NSObject> _delegate;
 }
 @end
 
@@ -61,6 +61,7 @@
 @implementation GameCenterManager
 
 @synthesize earnedAchievementCache;
+@synthesize delegate;
 
 - (id) init
 {
@@ -106,11 +107,11 @@
 	{
 		if(arg != NULL)
 		{
-			[self.delegate performSelector: selector withObject: arg withObject: err];
+			[_delegate performSelector: selector withObject: arg withObject: err];
 		}
 		else
 		{
-			[self.delegate performSelector: selector withObject: err];
+			[_delegate performSelector: selector withObject: err];
 		}
 	}
 	else

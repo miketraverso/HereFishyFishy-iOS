@@ -10,7 +10,7 @@
 #import <GameKit/GameKit.h>
 #import <StoreKit/StoreKit.h>
 #import "HFFInAppPurchaseHelper.h"
-#import <KiipSDK/KiipSDK.h>
+//#import <KiipSDK/KiipSDK.h>
 #import <AVFoundation/AVFoundation.h>
 
 typedef NS_ENUM(int, Layer) {
@@ -34,6 +34,9 @@ typedef NS_OPTIONS(int, EntityCategory) {
 };
 
 static const int kNumberOfForegrounds = 2;
+static const int kWhaleFrequency = 5;
+static const int kCrabFrequency = 2;
+
 static const float kGravity = -1500.0;
 static const float kImpulse = 400.0;
 static const float kGroundSpeed = -150.0f;
@@ -51,16 +54,22 @@ static NSString *const kAppId = @"827463150";
 //static NSString *const kFontName = @"CourierNewPS-BoldMT";
 
 #define FISHY_MOVE_ANIM @[[SKTexture textureWithImageNamed:@"fish-0"],[SKTexture textureWithImageNamed:@"fish-1"],[SKTexture textureWithImageNamed:@"fish-0"]]
+#define CRABBY_MOVE_ANIM @[[SKTexture textureWithImageNamed:@"crabby-0"],[SKTexture textureWithImageNamed:@"crabby-1"]]
+#define WHALEY_MOVE_ANIM @[[SKTexture textureWithImageNamed:@"whale-0"],[SKTexture textureWithImageNamed:@"whale-1"]]
 
 @implementation HFFScene
 {
     SKNode *_worldNode;
     SKSpriteNode *_fishyFishy;
     SKSpriteNode *_okButton, *_shareButton, *_buyButton, *_rateButton, *_gamecenterButton, *_restoreButton;
+    SKSpriteNode *_crabby, *_whaley;
     CGPoint _fishyVelocity;
+    CGPoint _crabbyVelocity, _whaleyVelocity;
     
     float _playableStart;
     float _playableHeight;
+
+    int _foregroundSwitches;
 
     NSTimeInterval _lastUpdateTime;
     NSTimeInterval _delta;
@@ -97,6 +106,7 @@ static NSString *const kAppId = @"827463150";
 {
     if (self = [super initWithSize:size])
     {
+        
         _delegate = delegate;
 
         _worldNode = [SKNode node];
@@ -110,6 +120,7 @@ static NSString *const kAppId = @"827463150";
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(restoreFailed) name:@"RestoreTransactionFailed" object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(restoreSuccess) name:@"RestoreTransactionSuccessful" object:nil];
 
+        _foregroundSwitches = 0;
         _loadedGameOver = NO;
         [self switchToTutorial];
     }
@@ -125,6 +136,9 @@ static NSString *const kAppId = @"827463150";
     [_fishyFishy runAction:walk];
 
     _fishyVelocity = CGPointMake(0, kImpulse);
+}
+
+-(void)crawlCrabby {
 }
 
 -(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
@@ -166,7 +180,6 @@ static NSString *const kAppId = @"827463150";
                 }
                 if ([_rateButton containsPoint:touchLocation])
                 {
-                    NSURL *appUrl = [NSURL URLWithString:[NSString stringWithFormat:@"itms-apps://itunes.apple.com/app/id%@", kAppId]];
                     // Go to rate page
                     [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"itms-apps://itunes.apple.com/app/id%@", kAppId]]];
                 }
@@ -201,8 +214,8 @@ static NSString *const kAppId = @"827463150";
         {
             ++_obstaclesPassed;
             // Divide obstacles passed by 2 because each obstacle has a top and bottom
-            [_score setText:[NSString stringWithFormat:@"%d", [self getScore]]];
-            [_scoreShadow setText:[NSString stringWithFormat:@"%d", [self getScore]]];
+            [_score setText:[NSString stringWithFormat:@"%ld", (long)[self getScore]]];
+            [_scoreShadow setText:[NSString stringWithFormat:@"%ld", (long)[self getScore]]];
             
             obstacle.userData[@"passed"] = @YES;
             
@@ -307,6 +320,36 @@ static NSString *const kAppId = @"827463150";
     }
 }
 
+- (void)updateCrabby {
+    
+    SKAction *crawlAcrossGround = [SKAction moveToX:720.0f duration:3.0f];
+    SKAction *animate = [SKAction animateWithTextures:CRABBY_MOVE_ANIM timePerFrame:0.25f];
+    [_crabby runAction:[SKAction repeatActionForever:animate]];
+    [_crabby runAction:crawlAcrossGround completion:^{
+        [_crabby setPosition:CGPointMake(-50.0f, _playableStart)];
+        [_crabby removeAllActions];
+    }];
+    
+
+}
+
+- (void)updateWhaley {
+    
+    SKAction *passby = [SKAction moveToX:_whaley.frame.size.width * -1 duration:7.0f];
+    SKAction *animate = [SKAction animateWithTextures:WHALEY_MOVE_ANIM timePerFrame:3.0f];
+    
+    CGPoint velocityStep = CGPointMultiplyScalar(_whaleyVelocity, _delta);
+    [_whaley setPosition: CGPointAdd(_whaley.position, velocityStep)];
+    [_whaley runAction:[SKAction repeatActionForever:animate]];
+    [_whaley runAction:passby completion:^{
+        if (!_hitGround && !_hitObstacle) {
+            [self startSpawningObstacles];
+            [_whaley setPosition:CGPointMake(_whaley.frame.size.width, _playableStart - 10.0f)];
+            [_whaley removeAllActions];
+        }
+    }];
+}
+
 - (void)updateForeground
 {
     [_worldNode enumerateChildNodesWithName:@"Foreground" usingBlock:^(SKNode *node, BOOL *stop) {
@@ -316,7 +359,19 @@ static NSString *const kAppId = @"827463150";
         
         if (foreground.position.x < -foreground.size.width)
         {
+            _foregroundSwitches ++;
             [foreground setPosition:CGPointAdd(foreground.position, CGPointMake(foreground.size.width *  kNumberOfForegrounds, 0))];
+            
+            if (_foregroundSwitches % kCrabFrequency == 0) {
+                // Draw crab in background
+                [self updateCrabby];
+            }
+            else if (_foregroundSwitches % kWhaleFrequency == 0) {
+                // Draw whale in background
+                NSLog(@"WHALEY");
+                [self updateWhaley];
+            }
+
         }
     }];
 }
@@ -351,10 +406,10 @@ static NSString *const kAppId = @"827463150";
 
     CGPathCloseSubpath(path);
     
-    obstacle.physicsBody = [SKPhysicsBody bodyWithPolygonFromPath:path];
-    obstacle.physicsBody.categoryBitMask = EntityCategoryObstacle;
-    obstacle.physicsBody.collisionBitMask = 0;
-    obstacle.physicsBody.contactTestBitMask = EntityCategoryPlayer;
+//    obstacle.physicsBody = [SKPhysicsBody bodyWithPolygonFromPath:path];
+//    obstacle.physicsBody.categoryBitMask = EntityCategoryObstacle;
+//    obstacle.physicsBody.collisionBitMask = 0;
+//    obstacle.physicsBody.contactTestBitMask = EntityCategoryPlayer;
     return obstacle;
 }
 
@@ -364,7 +419,7 @@ static NSString *const kAppId = @"827463150";
     SKAction *spawn = [SKAction performSelector:@selector(spawnObstacle) onTarget:self];
     SKAction *regularDelay = [SKAction waitForDuration:kSubsequentObstacleSpawn];
     SKAction *spawnSequence = [SKAction sequence:@[spawn, regularDelay]];
-    SKAction *foreverSpawnObstacles = [SKAction repeatActionForever:spawnSequence];
+    SKAction *foreverSpawnObstacles = [SKAction repeatAction:spawnSequence count:kWhaleFrequency];
     SKAction *overallSequence = [SKAction sequence:@[firstDelay, foreverSpawnObstacles]];
     [self runAction:overallSequence withKey:@"Spawn"];
 }
@@ -378,7 +433,12 @@ static NSString *const kAppId = @"827463150";
     [_worldNode enumerateChildNodesWithName:@"ObstacleBottom" usingBlock:^(SKNode *node, BOOL *stop) {
         [node removeAllActions];
     }];
-
+    [_worldNode enumerateChildNodesWithName:@"Crabby" usingBlock:^(SKNode *node, BOOL *stop) {
+        [node removeAllActions];
+    }];
+    [_worldNode enumerateChildNodesWithName:@"Whaley" usingBlock:^(SKNode *node, BOOL *stop) {
+        [node removeAllActions];
+    }];
 }
 
 - (void)spawnObstacle
@@ -404,7 +464,6 @@ static NSString *const kAppId = @"827463150";
                                               ]];
     [topObstacle runAction:sequence];
     [bottomObstacle runAction:sequence];
-    
 }
 
 #pragma mark - Switch States
@@ -499,6 +558,8 @@ static NSString *const kAppId = @"827463150";
     [self setupBackground];
     [self setupForeground];
     [self setupFishyFishy];
+    [self setupCrabby];
+    [self setupWhaley];
     [self setupSounds];
     [self setupScore];
     
@@ -516,88 +577,88 @@ static NSString *const kAppId = @"827463150";
 }
 
 #pragma mark - Kiip
-- (void)showKiipRewardForNewHighScore
-{
-    NSString *momentName = @"Beating your best score!";
-
-    if (![[NSUserDefaults standardUserDefaults] boolForKey:momentName])
-    {
-        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:momentName];
-        [[NSUserDefaults standardUserDefaults] synchronize];
-
-        [[Kiip sharedInstance] saveMoment:momentName withCompletionHandler:^(KPPoptart *poptart, NSError *error) {
-            if (error)
-            {
-                NSLog([NSString stringWithFormat:@"Kiip error: %@", [error userInfo]]);
-            }
-            if (poptart)
-            {
-                [poptart show];
-            }
-            if (!poptart)
-            {
-                // handle logic when there is no reward to give.
-            }
-        }];
-    }
-}
-
-- (void)showKiipRewardForObstacles
-{
-    NSString *momentName = @"";
-    
-    if ([self getScore] >= 1 && [self getScore] < 5)
-    {
-        momentName = @"Getting past 1 obstacle!";
-    }
-    else if ([self getScore] >= 5 && [self getScore] < 10)
-    {
-        momentName = @"Getting past 5 obstacles!";
-    }
-    else if ([self getScore] >= 10 && [self getScore] < 25)
-    {
-        momentName = @"Getting past 10 obstacles!";
-    }
-    else if ([self getScore] >= 25 && [self getScore] < 50)
-    {
-        momentName = @"Getting past 25 obstacles!";
-    }
-    else if ([self getScore] >= 50 && [self getScore] < 100)
-    {
-        momentName = @"Getting past 50 obstacles!";
-    }
-    else if ([self getScore] >= 100)
-    {
-        momentName = @"Getting past 100 or more obstacles!";
-    }
-    
-    // No Kiip reward to give
-    if ([momentName isEqualToString:@""])
-        return;
-    
-    if (![[NSUserDefaults standardUserDefaults] boolForKey:momentName])
-    {
-        // Update the user has been presented with this award already
-        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:momentName];
-        [[NSUserDefaults standardUserDefaults] synchronize];
-        
-        // Get user the Kiip reward
-        [[Kiip sharedInstance] saveMoment:momentName withCompletionHandler:^(KPPoptart *poptart, NSError *error) {
-            if (error)
-            {
-                NSLog([NSString stringWithFormat:@"Kiip error: %@", [error userInfo]]);
-            }
-            if (poptart)
-            {
-                [poptart show];
-            }
-            if (!poptart)
-            {
-                // handle logic when there is no reward to give.
-            }
-        }];
-    }
-}
+//- (void)showKiipRewardForNewHighScore
+//{
+//    NSString *momentName = @"Beating your best score!";
+//
+//    if (![[NSUserDefaults standardUserDefaults] boolForKey:momentName])
+//    {
+//        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:momentName];
+//        [[NSUserDefaults standardUserDefaults] synchronize];
+//
+//        [[Kiip sharedInstance] saveMoment:momentName withCompletionHandler:^(KPPoptart *poptart, NSError *error) {
+//            if (error)
+//            {
+//                NSLog([NSString stringWithFormat:@"Kiip error: %@", [error userInfo]]);
+//            }
+//            if (poptart)
+//            {
+//                [poptart show];
+//            }
+//            if (!poptart)
+//            {
+//                // handle logic when there is no reward to give.
+//            }
+//        }];
+//    }
+//}
+//
+//- (void)showKiipRewardForObstacles
+//{
+//    NSString *momentName = @"";
+//    
+//    if ([self getScore] >= 1 && [self getScore] < 5)
+//    {
+//        momentName = @"Getting past 1 obstacle!";
+//    }
+//    else if ([self getScore] >= 5 && [self getScore] < 10)
+//    {
+//        momentName = @"Getting past 5 obstacles!";
+//    }
+//    else if ([self getScore] >= 10 && [self getScore] < 25)
+//    {
+//        momentName = @"Getting past 10 obstacles!";
+//    }
+//    else if ([self getScore] >= 25 && [self getScore] < 50)
+//    {
+//        momentName = @"Getting past 25 obstacles!";
+//    }
+//    else if ([self getScore] >= 50 && [self getScore] < 100)
+//    {
+//        momentName = @"Getting past 50 obstacles!";
+//    }
+//    else if ([self getScore] >= 100)
+//    {
+//        momentName = @"Getting past 100 or more obstacles!";
+//    }
+//    
+//    // No Kiip reward to give
+//    if ([momentName isEqualToString:@""])
+//        return;
+//    
+//    if (![[NSUserDefaults standardUserDefaults] boolForKey:momentName])
+//    {
+//        // Update the user has been presented with this award already
+//        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:momentName];
+//        [[NSUserDefaults standardUserDefaults] synchronize];
+//        
+//        // Get user the Kiip reward
+//        [[Kiip sharedInstance] saveMoment:momentName withCompletionHandler:^(KPPoptart *poptart, NSError *error) {
+//            if (error)
+//            {
+//                NSLog([NSString stringWithFormat:@"Kiip error: %@", [error userInfo]]);
+//            }
+//            if (poptart)
+//            {
+//                [poptart show];
+//            }
+//            if (!poptart)
+//            {
+//                // handle logic when there is no reward to give.
+//            }
+//        }];
+//    }
+//}
 
 #pragma mark - Setup
 - (void)setupScore
@@ -693,6 +754,47 @@ static NSString *const kAppId = @"827463150";
     _fishyFishy.physicsBody.contactTestBitMask = EntityCategoryGround | EntityCategoryObstacle;
 }
 
+- (void)setupCrabby {
+    _crabby = [[SKSpriteNode alloc] initWithImageNamed:@"crabby-1"];
+    [_crabby setAnchorPoint:CGPointMake(0.5, 0.0)];
+    [_crabby setPosition:CGPointMake( -50.0f, _playableStart)];
+    [_crabby setZPosition:LayerForeground];
+    [_crabby setName:@"Crabby"];
+    [_worldNode addChild:_crabby];
+}
+
+- (void)setupWhaley {
+    _whaley = [[SKSpriteNode alloc] initWithImageNamed:@"whale-0"];
+    [_whaley setAnchorPoint:CGPointMake(0.0, 0.0)];
+    [_whaley setPosition:CGPointMake(_whaley.frame.size.width, _playableStart + 10)];
+    [_whaley setZPosition:LayerForeground];
+    [_whaley setName:@"Whaley"];
+    [_worldNode addChild:_whaley];
+    
+    CGFloat offsetX = _whaley.frame.size.width * _whaley.anchorPoint.x;
+    CGFloat offsetY = _whaley.frame.size.height * _whaley.anchorPoint.y;
+    
+    CGMutablePathRef path = CGPathCreateMutable();
+
+    CGPathMoveToPoint(path, NULL, 14 - offsetX, 3 - offsetY);
+    CGPathAddLineToPoint(path, NULL, 0 - offsetX, 72 - offsetY);
+    CGPathAddLineToPoint(path, NULL, 2 - offsetX, 121 - offsetY);
+    CGPathAddLineToPoint(path, NULL, 15 - offsetX, 136 - offsetY);
+    CGPathAddLineToPoint(path, NULL, 42 - offsetX, 104 - offsetY);
+    CGPathAddLineToPoint(path, NULL, 81 - offsetX, 106 - offsetY);
+    CGPathAddLineToPoint(path, NULL, 80 - offsetX, 74 - offsetY);
+    CGPathAddLineToPoint(path, NULL, 166 - offsetX, 125 - offsetY);
+    CGPathAddLineToPoint(path, NULL, 237 - offsetX, 136 - offsetY);
+    CGPathAddLineToPoint(path, NULL, 342 - offsetX, 130 - offsetY);
+    CGPathAddLineToPoint(path, NULL, 354 - offsetX, 5 - offsetY);
+    CGPathCloseSubpath(path);
+    
+    _whaley.physicsBody = [SKPhysicsBody bodyWithPolygonFromPath:path];
+    _whaley.physicsBody.categoryBitMask = EntityCategoryObstacle;
+    _whaley.physicsBody.collisionBitMask = 0;
+    _whaley.physicsBody.contactTestBitMask = EntityCategoryPlayer;
+}
+
 - (void)setupScoreCard
 {
     SKAction *pops = [SKAction sequence:@[
@@ -717,14 +819,14 @@ static NSString *const kAppId = @"827463150";
     if ([self getScore] > [self getBestScore])
     {
         [self setBestScore];
-        if (!KiipRewardsOn)
-            [self showKiipRewardForNewHighScore];
+//        if (!KiipRewardsOn)
+//            [self showKiipRewardForNewHighScore];
     }
-    else
-    {
-        if (!KiipRewardsOn)
-            [self showKiipRewardForObstacles];
-    }
+//    else
+//    {
+//        if (!KiipRewardsOn)
+//            [self showKiipRewardForObstacles];
+//    }
     
     SKSpriteNode *scorecard = [SKSpriteNode spriteNodeWithImageNamed:@"scorecard"];
     scorecard.position = CGPointMake(self.size.width * 0.5, self.size.height/2);
@@ -736,28 +838,28 @@ static NSString *const kAppId = @"827463150";
     lastScoreShadow.fontColor = [SKColor blackColor];
     lastScoreShadow.fontSize = 41;
     lastScoreShadow.position = CGPointMake(-scorecard.size.width * 0.25+ 2, -scorecard.size.height * 0.2 - 1);
-    lastScoreShadow.text = [NSString stringWithFormat:@"%d", [self getScore]];
+    lastScoreShadow.text = [NSString stringWithFormat:@"%ld", (long)[self getScore]];
     [scorecard addChild:lastScoreShadow];
     
     SKLabelNode *bestScoreShadow = [[SKLabelNode alloc] initWithFontNamed:kFontName];
     bestScoreShadow.fontColor = [SKColor blackColor];
     bestScoreShadow.fontSize = 41;
     bestScoreShadow.position = CGPointMake(scorecard.size.width * 0.25 + 2, -scorecard.size.height * 0.2 - 1);
-    bestScoreShadow.text = [NSString stringWithFormat:@"%d", [self getBestScore]];
+    bestScoreShadow.text = [NSString stringWithFormat:@"%ld", (long)[self getBestScore]];
     [scorecard addChild:bestScoreShadow];
 
     SKLabelNode *lastScore = [[SKLabelNode alloc] initWithFontNamed:kFontName];
     lastScore.fontColor = [SKColor whiteColor];
     lastScore.fontSize = 40;
     lastScore.position = CGPointMake(-scorecard.size.width * 0.25, -scorecard.size.height * 0.2);
-    lastScore.text = [NSString stringWithFormat:@"%d", [self getScore]];
+    lastScore.text = [NSString stringWithFormat:@"%ld", (long)[self getScore]];
     [scorecard addChild:lastScore];
     
     SKLabelNode *bestScore = [[SKLabelNode alloc] initWithFontNamed:kFontName];
     bestScore.fontColor = [SKColor whiteColor];
     bestScore.fontSize = 40;
     bestScore.position = CGPointMake(scorecard.size.width * 0.25, -scorecard.size.height * 0.2);
-    bestScore.text = [NSString stringWithFormat:@"%d", [self getBestScore]];
+    bestScore.text = [NSString stringWithFormat:@"%ld", (long)[self getBestScore]];
     [scorecard addChild:bestScore];
     
     SKSpriteNode *gameOver = [SKSpriteNode spriteNodeWithImageNamed:@"gameOver"];
@@ -958,7 +1060,7 @@ static NSString *const kAppId = @"827463150";
     [GKScore reportScores:scores withCompletionHandler:^(NSError *error) {
         if (error)
         {
-            NSLog([NSString stringWithFormat:@"Error reporting score %@", error.userInfo]);
+            NSLog([NSString stringWithFormat:@"Error reporting score %@", error]);
         }
     }];
 }
@@ -972,7 +1074,7 @@ static NSString *const kAppId = @"827463150";
     
     UIImage *screenshot = [self.delegate screenshot];
     
-    NSString *initialTextString = [NSString stringWithFormat:@"Yay!!! I scored %d points in Here Fishy Fishy!", [self getScore]];
+    NSString *initialTextString = [NSString stringWithFormat:@"Yay!!! I scored %ld points in Here Fishy Fishy!", (long)[self getScore]];
     [self.delegate shareString:initialTextString url:url image:screenshot];
 }
 
@@ -1023,7 +1125,7 @@ static NSString *const kAppId = @"827463150";
     }
 }
 
-- (void)restoreFailure
+- (void)restoreFailed
 {
     _restoreAlert.title = @"Oops...";
     _restoreAlert.message = @"Error restoring purchase. Please try again.";
