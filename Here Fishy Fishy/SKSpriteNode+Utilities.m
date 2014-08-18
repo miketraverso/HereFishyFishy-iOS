@@ -27,4 +27,12 @@
     return self.position.y - self.size.height;
 }
 
+- (CGFloat)spriteLeftEdge {
+    return self.position.x;
+}
+
+- (CGFloat)spriteRightEdge {
+    return self.position.x - self.size.width;
+}
+
 @end

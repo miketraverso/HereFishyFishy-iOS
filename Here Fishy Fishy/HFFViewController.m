@@ -31,9 +31,8 @@
         gameCenterManager = [[GameCenterManager alloc] init];
         [gameCenterManager setDelegate:self];
         [gameCenterManager authenticateLocalUser];
-        
-        
-    } else {
+    }
+    else {
         
         // The current device does not support Game Center.
         
@@ -65,11 +64,9 @@
 //    skView.showsFPS = YES;
 //    skView.showsNodeCount = YES;
     
-    // Create and configure the scene.
     SKScene *scene = [[HFFScene alloc] initWithSize:skView.bounds.size andDelegate:self];
     scene.scaleMode = SKSceneScaleModeAspectFill;
     self.canDisplayBannerAds = YES;
-    // Present the scene.
     [skView presentScene:scene];
 }
 

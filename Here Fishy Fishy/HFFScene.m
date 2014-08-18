@@ -7,66 +7,18 @@
 //
 
 #import "HFFScene.h"
-#import <GameKit/GameKit.h>
-#import <StoreKit/StoreKit.h>
-#import "HFFInAppPurchaseHelper.h"
-//#import <KiipSDK/KiipSDK.h>
-#import <AVFoundation/AVFoundation.h>
-
-typedef NS_ENUM(int, Layer) {
-    LayerBackground,
-    LayerObstacle,
-    LayerForeground,
-    LayerFishyFishy,
-    LayerUI,
-    LayerGameCenter
-};
-
-typedef NS_ENUM(int, ObstacleType) {
-    ObstacleTop,
-    ObstacleBottom
-};
-
-typedef NS_OPTIONS(int, EntityCategory) {
-    EntityCategoryPlayer = 1 << 0,
-    EntityCategoryObstacle = 1 << 1,
-    EntityCategoryGround = 1 << 2
-};
-
-static const int kNumberOfForegrounds = 2;
-static const int kWhaleFrequency = 5;
-static const int kCrabFrequency = 2;
-
-static const float kGravity = -1500.0;
-static const float kImpulse = 400.0;
-static const float kGroundSpeed = -150.0f;
-static const float kGapMultiplier = 2.5;
-static const float kBottomObstacleMinFraction = 0.1;
-static const float kBottomObstacleMaxFraction = 0.6;
-static const float kFirstObstacleSpawn = 1.75;
-static const float kSubsequentObstacleSpawn = 1.5;
-static const float kMargin = 30;
-static const float kAnimDelay = 0.3;
-
-static NSString *const kFontName = @"ArcadeClassic";
-static NSString *const kAppId = @"827463150";
-//static NSString *const kFontName = @"KarmaticArcade";
-//static NSString *const kFontName = @"CourierNewPS-BoldMT";
-
-#define FISHY_MOVE_ANIM @[[SKTexture textureWithImageNamed:@"fish-0"],[SKTexture textureWithImageNamed:@"fish-1"],[SKTexture textureWithImageNamed:@"fish-0"]]
-#define CRABBY_MOVE_ANIM @[[SKTexture textureWithImageNamed:@"crabby-0"],[SKTexture textureWithImageNamed:@"crabby-1"]]
-#define WHALEY_MOVE_ANIM @[[SKTexture textureWithImageNamed:@"whale-0"],[SKTexture textureWithImageNamed:@"whale-1"]]
+#import "HFFPurchaseFishy.h"
 
 @implementation HFFScene
 {
     SKNode *_worldNode;
     SKSpriteNode *_fishyFishy;
-    SKSpriteNode *_okButton, *_shareButton, *_buyButton, *_rateButton, *_gamecenterButton, *_restoreButton;
+    SKSpriteNode *_okButton, *_shareButton, *_buyButton, *_rateButton, *_gamecenterButton, *_restoreButton, *_buyFishyButton, *_buyFishy;
     SKSpriteNode *_crabby, *_whaley;
     CGPoint _fishyVelocity;
     CGPoint _crabbyVelocity, _whaleyVelocity;
     
-    float _playableStart;
+    float _playableStart, _whaleStart, _crabStart;
     float _playableHeight;
 
     int _foregroundSwitches;
@@ -83,6 +35,7 @@ static NSString *const kAppId = @"827463150";
     SKAction *_coinAction;
     SKAction *_backgroundAction;
     SKAction *_gameOverAction;
+    SKAction *_fadeIn,*_fadeInSlow;
     
     BOOL _hitGround, _hitObstacle, _loadedGameOver;
     GameState _gameState;
@@ -120,6 +73,10 @@ static NSString *const kAppId = @"827463150";
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(restoreFailed) name:@"RestoreTransactionFailed" object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(restoreSuccess) name:@"RestoreTransactionSuccessful" object:nil];
 
+        _fadeIn = [SKAction sequence:@[[SKAction waitForDuration:kAnimDelay*3],
+                                       [SKAction fadeInWithDuration:kAnimDelay]]];
+        _fadeInSlow = [SKAction sequence:@[[SKAction waitForDuration:kAnimDelay*5],
+                                           [SKAction fadeInWithDuration:kAnimDelay]]];
         _foregroundSwitches = 0;
         _loadedGameOver = NO;
         [self switchToTutorial];
@@ -149,50 +106,82 @@ static NSString *const kAppId = @"827463150";
     switch (_gameState) {
         case GameStateMainMenu:
             break;
+            
+        case GameStateStore:
+            break;
+
         case GameStateTutorial:
+            
             [_fishyFishy removeAllActions];
-            if ([_gamecenterButton containsPoint:touchLocation])
-            {
+
+            if ([_gamecenterButton containsPoint:touchLocation]) {
+
                 [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"gamecenter:/me/account"]];
             }
-            else
-            {
+            else if ([_buyFishyButton containsPoint:touchLocation]) {
+                    
+                SKView * skView = (SKView *)self.view;
+                SKScene *scene = [[HFFPurchaseFishy alloc] initWithSize:skView.bounds.size andDelegate:_delegate];
+                scene.scaleMode = SKSceneScaleModeAspectFill;
+                
+                scene.scaleMode = SKSceneScaleModeAspectFill;
+                [skView presentScene:scene];
+            }
+
+            else {
+                
                 [self switchToPlay];
             }
             break;
+            
         case GameStatePlay:
             [self flapFishy];
             break;
+            
         case GameStateFalling:
             break;
+            
         case GameStateShowingScore:
             break;
+            
         case GameStateGameOver:
-            if (_okButton.alpha == 1.0)
-            {
-                if ([_okButton containsPoint:touchLocation])
-                {
+            if (_okButton.alpha == 1.0) {
+                
+                if ([_okButton containsPoint:touchLocation]) {
+                    
                     [self switchToNewGame];
                 }
-                if ([_shareButton containsPoint:touchLocation])
-                {
+                
+                if ([_shareButton containsPoint:touchLocation]) {
+                
                     [self shareScore];
                 }
-                if ([_rateButton containsPoint:touchLocation])
-                {
-                    // Go to rate page
+                
+                if ([_rateButton containsPoint:touchLocation]) {
+                    
                     [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"itms-apps://itunes.apple.com/app/id%@", kAppId]]];
                 }
-                if ([_buyButton containsPoint:touchLocation])
-                {
-                    // Make purchase
+                
+                if ([_buyButton containsPoint:touchLocation]) {
+                    
                     [self buyButtonTapped];
                 }
-                if ([_restoreButton containsPoint:touchLocation])
-                {
-                    // Restore purchases
+                
+                if ([_restoreButton containsPoint:touchLocation]) {
+                    
                     [self restorePurchases];
                 }
+                
+                if ([_buyFishyButton containsPoint:touchLocation]) {
+                    
+                    SKView * skView = (SKView *)self.view;
+                    SKScene *scene = [[HFFPurchaseFishy alloc] initWithSize:skView.bounds.size];
+                    scene.scaleMode = SKSceneScaleModeAspectFill;
+                    
+                    scene.scaleMode = SKSceneScaleModeAspectFill;
+                    [skView presentScene:scene];
+                }
+                
                 _loadedGameOver = NO;
             }
             break;
@@ -326,17 +315,15 @@ static NSString *const kAppId = @"827463150";
     SKAction *animate = [SKAction animateWithTextures:CRABBY_MOVE_ANIM timePerFrame:0.25f];
     [_crabby runAction:[SKAction repeatActionForever:animate]];
     [_crabby runAction:crawlAcrossGround completion:^{
-        [_crabby setPosition:CGPointMake(-50.0f, _playableStart)];
+        [_crabby setPosition:CGPointMake(-150.0f, _crabStart)];
         [_crabby removeAllActions];
     }];
-    
-
 }
 
 - (void)updateWhaley {
     
     SKAction *passby = [SKAction moveToX:_whaley.frame.size.width * -1 duration:7.0f];
-    SKAction *animate = [SKAction animateWithTextures:WHALEY_MOVE_ANIM timePerFrame:3.0f];
+    SKAction *animate = [SKAction animateWithTextures:WHALEY_MOVE_ANIM timePerFrame:2.0f];
     
     CGPoint velocityStep = CGPointMultiplyScalar(_whaleyVelocity, _delta);
     [_whaley setPosition: CGPointAdd(_whaley.position, velocityStep)];
@@ -344,7 +331,7 @@ static NSString *const kAppId = @"827463150";
     [_whaley runAction:passby completion:^{
         if (!_hitGround && !_hitObstacle) {
             [self startSpawningObstacles];
-            [_whaley setPosition:CGPointMake(_whaley.frame.size.width, _playableStart - 10.0f)];
+            [_whaley setPosition:CGPointMake(_whaley.frame.size.width, _whaleStart)];
             [_whaley removeAllActions];
         }
     }];
@@ -405,11 +392,12 @@ static NSString *const kAppId = @"827463150";
     CGPathAddLineToPoint(path, NULL, 3 - offsetX, 254 - offsetY);
 
     CGPathCloseSubpath(path);
+    obstacle.physicsBody = [SKPhysicsBody bodyWithPolygonFromPath:path];
+    obstacle.physicsBody.categoryBitMask = EntityCategoryObstacle;
+    obstacle.physicsBody.collisionBitMask = 0;
+    obstacle.physicsBody.contactTestBitMask = EntityCategoryPlayer;
     
-//    obstacle.physicsBody = [SKPhysicsBody bodyWithPolygonFromPath:path];
-//    obstacle.physicsBody.categoryBitMask = EntityCategoryObstacle;
-//    obstacle.physicsBody.collisionBitMask = 0;
-//    obstacle.physicsBody.contactTestBitMask = EntityCategoryPlayer;
+    CGPathRelease(path);
     return obstacle;
 }
 
@@ -531,6 +519,14 @@ static NSString *const kAppId = @"827463150";
                                              ]]];
     }];
     
+    
+    [_worldNode enumerateChildNodesWithName:@"BuyFishy" usingBlock:^(SKNode *node, BOOL *stop) {
+        [node runAction:[SKAction sequence:@[
+                                             [SKAction fadeOutWithDuration:0.5],
+                                             [SKAction removeFromParent]
+                                             ]]];
+    }];
+    
     [_worldNode enumerateChildNodesWithName:@"GameCenter" usingBlock:^(SKNode *node, BOOL *stop) {
         [node runAction:[SKAction sequence:@[
                                              [SKAction fadeOutWithDuration:0.5],
@@ -558,11 +554,10 @@ static NSString *const kAppId = @"827463150";
     [self setupBackground];
     [self setupForeground];
     [self setupFishyFishy];
-    [self setupCrabby];
     [self setupWhaley];
+    [self setupCrabby];
     [self setupSounds];
     [self setupScore];
-    
     
     [_fishyFishy removeAllActions];
     
@@ -665,7 +660,7 @@ static NSString *const kAppId = @"827463150";
 {
     _scoreShadow = [[SKLabelNode alloc] initWithFontNamed:kFontName];
     [_scoreShadow setFontColor:[SKColor whiteColor]];
-    _scoreShadow.fontSize = 41;
+    _scoreShadow.fontSize = kFontSize;
     [_scoreShadow setPosition:CGPointMake(self.size.width/2-2, self.size.height+1 - kMargin)];
     [_scoreShadow setText:@"0"];
     [_scoreShadow setVerticalAlignmentMode:SKLabelVerticalAlignmentModeTop];
@@ -673,7 +668,7 @@ static NSString *const kAppId = @"827463150";
     
     _score = [[SKLabelNode alloc] initWithFontNamed:kFontName];
     [_score setFontColor:[SKColor blackColor]];
-    _score.fontSize = 41;
+    _score.fontSize = kFontSize;
     [_score setPosition:CGPointMake(self.size.width/2, self.size.height - kMargin)];
     [_score setText:@"0"];
     [_score setVerticalAlignmentMode:SKLabelVerticalAlignmentModeTop];
@@ -700,7 +695,8 @@ static NSString *const kAppId = @"827463150";
     // Set the playable area attributes
     _playableHeight = background.size.height;
     _playableStart = self.size.height - background.size.height;
-    
+    _crabStart = _playableStart - 5.0f;
+    _whaleStart = _playableStart - 20.0f;
     [_worldNode addChild:background];
     
     CGPoint lowerLeft = CGPointMake(0, _playableStart);
@@ -752,21 +748,23 @@ static NSString *const kAppId = @"827463150";
     _fishyFishy.physicsBody.categoryBitMask = EntityCategoryPlayer;
     _fishyFishy.physicsBody.collisionBitMask = 0;
     _fishyFishy.physicsBody.contactTestBitMask = EntityCategoryGround | EntityCategoryObstacle;
+    
+    CGPathRelease(path);
 }
 
 - (void)setupCrabby {
     _crabby = [[SKSpriteNode alloc] initWithImageNamed:@"crabby-1"];
     [_crabby setAnchorPoint:CGPointMake(0.5, 0.0)];
-    [_crabby setPosition:CGPointMake( -50.0f, _playableStart)];
+    [_crabby setPosition:CGPointMake( -150.0f, _crabStart)];
     [_crabby setZPosition:LayerForeground];
     [_crabby setName:@"Crabby"];
     [_worldNode addChild:_crabby];
 }
 
 - (void)setupWhaley {
-    _whaley = [[SKSpriteNode alloc] initWithImageNamed:@"whale-0"];
+    _whaley = [[SKSpriteNode alloc] initWithImageNamed:@"whale-1"];
     [_whaley setAnchorPoint:CGPointMake(0.0, 0.0)];
-    [_whaley setPosition:CGPointMake(_whaley.frame.size.width, _playableStart + 10)];
+    [_whaley setPosition:CGPointMake(_whaley.frame.size.width, _whaleStart)];
     [_whaley setZPosition:LayerForeground];
     [_whaley setName:@"Whaley"];
     [_worldNode addChild:_whaley];
@@ -793,6 +791,8 @@ static NSString *const kAppId = @"827463150";
     _whaley.physicsBody.categoryBitMask = EntityCategoryObstacle;
     _whaley.physicsBody.collisionBitMask = 0;
     _whaley.physicsBody.contactTestBitMask = EntityCategoryPlayer;
+    
+    CGPathRelease(path);
 }
 
 - (void)setupScoreCard
@@ -828,47 +828,71 @@ static NSString *const kAppId = @"827463150";
 //            [self showKiipRewardForObstacles];
 //    }
     
+    _restoreButton = [SKSpriteNode spriteNodeWithImageNamed:@"button"];
+    _restoreButton.position = CGPointMake(self.size.width/2-2, self.size.height+1 - kMargin - 20);//CGPointMake(self.size.width * 0.25, self.size.height/2 - scorecard.size.height/2 - 3.3 * kMargin - _buyButton.size.height/2);
+    _restoreButton.zPosition = LayerUI;
+    [_worldNode addChild:_restoreButton];
+    
+    SKSpriteNode *restore = [SKSpriteNode spriteNodeWithImageNamed:@"restore"];
+    restore.position = CGPointZero;
+    restore.zPosition = LayerUI;
+    [_restoreButton addChild:restore];
+
+    SKSpriteNode *gameOver = [SKSpriteNode spriteNodeWithImageNamed:@"gameOver"];
+    gameOver.position = CGPointMake(self.size.width/2, [_restoreButton spriteBottomEdge] - kMarginHalf);
+    gameOver.zPosition = LayerUI;
+    [_worldNode addChild:gameOver];
+
     SKSpriteNode *scorecard = [SKSpriteNode spriteNodeWithImageNamed:@"scorecard"];
-    scorecard.position = CGPointMake(self.size.width * 0.5, self.size.height/2);
+    scorecard.position = CGPointMake(self.size.width/2, [gameOver spriteBottomEdge] - kMarginDouble);
     scorecard.name = @"Tutorial";
     scorecard.zPosition = LayerUI;
     [_worldNode addChild:scorecard];
     
     SKLabelNode *lastScoreShadow = [[SKLabelNode alloc] initWithFontNamed:kFontName];
     lastScoreShadow.fontColor = [SKColor blackColor];
-    lastScoreShadow.fontSize = 41;
+    lastScoreShadow.fontSize = kFontSize;
     lastScoreShadow.position = CGPointMake(-scorecard.size.width * 0.25+ 2, -scorecard.size.height * 0.2 - 1);
     lastScoreShadow.text = [NSString stringWithFormat:@"%ld", (long)[self getScore]];
     [scorecard addChild:lastScoreShadow];
     
     SKLabelNode *bestScoreShadow = [[SKLabelNode alloc] initWithFontNamed:kFontName];
     bestScoreShadow.fontColor = [SKColor blackColor];
-    bestScoreShadow.fontSize = 41;
+    bestScoreShadow.fontSize = kFontSize;
     bestScoreShadow.position = CGPointMake(scorecard.size.width * 0.25 + 2, -scorecard.size.height * 0.2 - 1);
     bestScoreShadow.text = [NSString stringWithFormat:@"%ld", (long)[self getBestScore]];
     [scorecard addChild:bestScoreShadow];
 
     SKLabelNode *lastScore = [[SKLabelNode alloc] initWithFontNamed:kFontName];
     lastScore.fontColor = [SKColor whiteColor];
-    lastScore.fontSize = 40;
+    lastScore.fontSize = kFontSize;
     lastScore.position = CGPointMake(-scorecard.size.width * 0.25, -scorecard.size.height * 0.2);
     lastScore.text = [NSString stringWithFormat:@"%ld", (long)[self getScore]];
     [scorecard addChild:lastScore];
     
     SKLabelNode *bestScore = [[SKLabelNode alloc] initWithFontNamed:kFontName];
     bestScore.fontColor = [SKColor whiteColor];
-    bestScore.fontSize = 40;
+    bestScore.fontSize = kFontSize;
     bestScore.position = CGPointMake(scorecard.size.width * 0.25, -scorecard.size.height * 0.2);
     bestScore.text = [NSString stringWithFormat:@"%ld", (long)[self getBestScore]];
     [scorecard addChild:bestScore];
     
-    SKSpriteNode *gameOver = [SKSpriteNode spriteNodeWithImageNamed:@"gameOver"];
-    gameOver.position = CGPointMake(self.size.width/2, self.size.height/2 + scorecard.size.height/2 - 10 + kMargin + gameOver.size.height/2);
-    gameOver.zPosition = LayerUI;
-    [_worldNode addChild:gameOver];
+    _buyButton = [SKSpriteNode spriteNodeWithImageNamed:@"button"];
+    if (![self hasRemoveAdsBeenPurchased]) {
+        
+        _buyButton.position = CGPointMake(self.size.width/2, [scorecard spriteBottomEdge] + kMarginHalf);
+        _buyButton.zPosition = LayerUI;
+        
+        SKSpriteNode *removeAdsNode = [SKSpriteNode spriteNodeWithImageNamed:@"removeads"];
+        removeAdsNode.position = CGPointZero;
+        removeAdsNode.zPosition = LayerUI;
+        
+        [_worldNode addChild:_buyButton];
+        [_buyButton addChild:removeAdsNode];
+    }
     
     _okButton = [SKSpriteNode spriteNodeWithImageNamed:@"button"];
-    _okButton.position = CGPointMake(self.size.width * 0.25, self.size.height/2 - scorecard.size.height/2 - kMargin - _okButton.size.height/2);
+    _okButton.position = CGPointMake(self.size.width * 0.75, [scorecard spriteBottomEdge] - _okButton.size.height );
     _okButton.zPosition = LayerUI;
     [_worldNode addChild:_okButton];
     
@@ -878,7 +902,7 @@ static NSString *const kAppId = @"827463150";
     [_okButton addChild:ok];
     
     _shareButton = [SKSpriteNode spriteNodeWithImageNamed:@"button"];
-    _shareButton.position = CGPointMake(self.size.width * 0.75, self.size.height/2 - scorecard.size.height/2 - kMargin - _shareButton.size.height/2);
+    _shareButton.position = CGPointMake(self.size.width * 0.25, [scorecard spriteBottomEdge] - _shareButton.size.height );
     _shareButton.zPosition = LayerUI;
     [_worldNode addChild:_shareButton];
     
@@ -887,49 +911,20 @@ static NSString *const kAppId = @"827463150";
     share.zPosition = LayerUI;
     [_shareButton addChild:share];
     
-    _buyButton = [SKSpriteNode spriteNodeWithImageNamed:@"button"];
-    _buyButton.position = CGPointMake(self.size.width * 0.25, self.size.height/2 - scorecard.size.height/2 - 3.3 * kMargin - _buyButton.size.height/2);
-    _buyButton.zPosition = LayerUI;
-
-    
-    SKSpriteNode *removeAdsNode = [SKSpriteNode spriteNodeWithImageNamed:@"removeads"];
-    removeAdsNode.position = CGPointZero;
-    removeAdsNode.zPosition = LayerUI;
-    
-    SKProduct *product = [[self.delegate getProducts] objectAtIndex:0]; // Only one IAP to buy  - Remove ads
-    if (product)
-    {
-        if (![[HFFInAppPurchaseHelper sharedInstance] productPurchased:@"com.traversoft.hff.no.ads"])
-        {
-            [_worldNode addChild:_buyButton];
-            [_buyButton addChild:removeAdsNode];
-        }
-    }
-    
-    _restoreButton = [SKSpriteNode spriteNodeWithImageNamed:@"button"];
-    _restoreButton.position = CGPointMake(self.size.width/2-2, self.size.height+1 - kMargin - 20);//CGPointMake(self.size.width * 0.25, self.size.height/2 - scorecard.size.height/2 - 3.3 * kMargin - _buyButton.size.height/2);
-    _restoreButton.zPosition = LayerUI;
-    [_worldNode addChild:_restoreButton];
-
-    SKSpriteNode *restore = [SKSpriteNode spriteNodeWithImageNamed:@"restore"];
-    restore.position = CGPointZero;
-    restore.zPosition = LayerUI;
-    [_restoreButton addChild:restore];
+    _buyFishyButton.position = CGPointMake(self.size.width * 0.25, [_shareButton spriteBottomEdge] - kMarginHalf);
+    _buyFishyButton.zPosition = LayerUI;
+    [_worldNode addChild:_buyFishyButton];
 
     _rateButton = [SKSpriteNode spriteNodeWithImageNamed:@"button"];
-    _rateButton.position = CGPointMake(self.size.width * 0.75, self.size.height/2 - scorecard.size.height/2 - 3.3 * kMargin - _rateButton.size.height/2);
+    _rateButton.position = CGPointMake(self.size.width * 0.75, [_okButton spriteBottomEdge] - kMarginHalf);
     _rateButton.zPosition = LayerUI;
     
     SKSpriteNode *rate = [SKSpriteNode spriteNodeWithImageNamed:@"rate"];
     rate.position = CGPointZero;
     rate.zPosition = LayerUI;
 
-//    NSURL *appUrl = [NSURL URLWithString:[NSString stringWithFormat:@"itms-apps://itunes.apple.com/app/id%@", kAppId]];
-//    if ([[UIApplication sharedApplication] canOpenURL:appUrl])
-//    {
-        [_worldNode addChild:_rateButton];
-        [_rateButton addChild:rate];
-//    }
+    [_worldNode addChild:_rateButton];
+    [_rateButton addChild:rate];
 
     gameOver.scale = 0;
     gameOver.alpha = 0;
@@ -942,9 +937,9 @@ static NSString *const kAppId = @"827463150";
                                              [SKAction waitForDuration:kAnimDelay],
                                              group
                                              ]]];
-    
+    CGPoint scoreCardPosition = scorecard.position;
     scorecard.position = CGPointMake(self.size.width * 0.5, -scorecard.size.height/2);
-    SKAction *moveTo = [SKAction moveTo:CGPointMake(self.size.width/2, self.size.height/2) duration:kAnimDelay];
+    SKAction *moveTo = [SKAction moveTo:scoreCardPosition duration:kAnimDelay];
     moveTo.timingMode = SKActionTimingEaseInEaseOut;
     [scorecard runAction:[SKAction sequence:@[
                                               [SKAction waitForDuration:kAnimDelay*2],
@@ -956,19 +951,26 @@ static NSString *const kAppId = @"827463150";
     _rateButton.alpha = 0;
     _buyButton.alpha = 0;
     _restoreButton.alpha = 0;
-    SKAction *fadeIn = [SKAction sequence:@[
-                                            [SKAction waitForDuration:kAnimDelay*3],
-                                            [SKAction fadeInWithDuration:kAnimDelay]
-                                            ]];
-    SKAction *fadeInSlow = [SKAction sequence:@[
-                                            [SKAction waitForDuration:kAnimDelay*5],
-                                            [SKAction fadeInWithDuration:kAnimDelay]
-                                            ]];
-    [_okButton runAction:fadeIn];
-    [_shareButton runAction:fadeIn];
-    [_rateButton runAction:fadeIn];
-    [_restoreButton runAction:fadeInSlow];
-    [_buyButton runAction:fadeIn completion:^{ _loadedGameOver = YES; }];
+    _buyFishyButton.alpha = 0;
+    
+    [_okButton runAction:_fadeIn];
+    [_shareButton runAction:_fadeIn];
+    [_rateButton runAction:_fadeIn];
+    [_restoreButton runAction:_fadeInSlow];
+    [_buyFishyButton runAction:_fadeIn];
+    [_buyButton runAction:_fadeIn completion:^{ _loadedGameOver = YES; }];
+}
+
+- (BOOL)hasRemoveAdsBeenPurchased {
+    for (SKProduct *product in  [self.delegate getProducts]) {
+        if (product) {
+            if ([[HFFInAppPurchaseHelper sharedInstance] productPurchased:@"com.traversoft.hff.no.ads"])
+            {
+                return YES;
+            }
+        }
+    }
+    return NO;
 }
 
 - (void)setupSounds
@@ -1012,8 +1014,34 @@ static NSString *const kAppId = @"827463150";
     _gamecenterButton.name = @"GameCenter";
     _gamecenterButton.zPosition = LayerGameCenter;
     [_worldNode addChild:_gamecenterButton];
+    
+    
+
+    _buyFishyButton = [[SKSpriteNode alloc] initWithImageNamed:@"button"];
+    _buyFishyButton.anchorPoint = CGPointMake(0.5f, 0.5f);
+    _buyFishyButton.position = CGPointMake(self.size.width/2, [ready spriteBottomEdge] + kMargin);
+    _buyFishyButton.zPosition = LayerGameCenter;
+    _buyFishyButton.name = @"BuyFishy";
+
+    _buyFishy = [[SKSpriteNode alloc] initWithImageNamed:@"fish-0"];
+    _buyFishy.anchorPoint = CGPointMake(0.5f, 0.5f);
+    [_buyFishy setScale:0.75];
+    _buyFishy.zPosition = LayerGameCenter;
+    _buyFishy.name = @"BuyFishy";
+
+    SKAction *walk = [SKAction animateWithTextures:FISHY_MOVE_ANIM timePerFrame:0.15];
+    [_buyFishy runAction:[SKAction repeatActionForever:walk]];
+
+    [_buyFishyButton addChild:_buyFishy];
+    [_worldNode addChild:_buyFishyButton];
 }
 
+- (void)switchScene:(SKScene*)newScene {
+
+    SKView * skView = (SKView *)self.view;
+    newScene.scaleMode = SKSceneScaleModeAspectFill;
+    [skView presentScene:newScene];
+}
 
 #pragma mark - SKPhysicsContactDelegate
 - (void)didBeginContact:(SKPhysicsContact *)contact
@@ -1060,7 +1088,7 @@ static NSString *const kAppId = @"827463150";
     [GKScore reportScores:scores withCompletionHandler:^(NSError *error) {
         if (error)
         {
-            NSLog([NSString stringWithFormat:@"Error reporting score %@", error]);
+            NSLog(@"Error reporting score %@", error);
         }
     }];
 }

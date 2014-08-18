@@ -14,5 +14,84 @@
     #import <UIKit/UIKit.h>
     #import <Foundation/Foundation.h>
     #import <SKUtils/SKUtils.h>
+    #import <GameKit/GameKit.h>
+    #import <StoreKit/StoreKit.h>
+    #import "HFFInAppPurchaseHelper.h"
+    //#import <KiipSDK/KiipSDK.h>
+    #import <AVFoundation/AVFoundation.h>
+    #import "SKSpriteNode+Utilities.h"
     #import <FacebookSDK/FacebookSDK.h>
+
+    typedef NS_ENUM(int, GameState) {
+        GameStateMainMenu,
+        GameStateTutorial,
+        GameStatePlay,
+        GameStateFalling,
+        GameStateShowingScore,
+        GameStateGameOver,
+        GameStateStore
+    };
+
+    typedef NS_ENUM(int, Layer) {
+        LayerBackground,
+        LayerObstacle,
+        LayerForeground,
+        LayerFishyFishy,
+        LayerUI,
+        LayerGameCenter
+    };
+
+    typedef NS_ENUM(int, ObstacleType) {
+        ObstacleTop,
+        ObstacleBottom
+    };
+
+    typedef NS_OPTIONS(int, EntityCategory) {
+        EntityCategoryPlayer = 1 << 0,
+        EntityCategoryObstacle = 1 << 1,
+        EntityCategoryGround = 1 << 2
+    };
+
+    static const int kNumberOfForegrounds = 2;
+    static const int kWhaleFrequency = 5;
+    static const int kCrabFrequency = 2;
+
+    static const float kGravity = -1500.0;
+    static const float kImpulse = 400.0;
+    static const float kGroundSpeed = -150.0f;
+    static const float kGapMultiplier = 2.5;
+    static const float kBottomObstacleMinFraction = 0.1;
+    static const float kBottomObstacleMaxFraction = 0.6;
+    static const float kFirstObstacleSpawn = 1.75;
+    static const float kSubsequentObstacleSpawn = 1.5;
+
+    static const float kMarginDouble = 60;
+    static const float kMargin = 30;
+    static const float kMarginHalf = 15;
+    static const float kAnimDelay = 0.3;
+    static const int kFontSize = 41;
+
+    static NSString *const kFontName = @"ArcadeClassic";
+    static NSString *const kAppId = @"827463150";
+    //static NSString *const kFontName = @"KarmaticArcade";
+    //static NSString *const kFontName = @"CourierNewPS-BoldMT";
+
+    #define FISHY_MOVE_ANIM @[[SKTexture textureWithImageNamed:@"fish-0"],[SKTexture textureWithImageNamed:@"fish-1"],[SKTexture textureWithImageNamed:@"fish-0"]]
+
+    #define FISHY_RED_MOVE_ANIM @[[SKTexture textureWithImageNamed:@"red-0"],[SKTexture textureWithImageNamed:@"red-1"],[SKTexture textureWithImageNamed:@"red-0"]]
+
+    #define FISHY_WOOD_MOVE_ANIM @[[SKTexture textureWithImageNamed:@"wood-fish-0"],[SKTexture textureWithImageNamed:@"wood-fish-1"],[SKTexture textureWithImageNamed:@"wood-fish-0"]]
+
+    #define FISHY_CLOWN_MOVE_ANIM @[[SKTexture textureWithImageNamed:@"clown-0"],[SKTexture textureWithImageNamed:@"clown-1"],[SKTexture textureWithImageNamed:@"clown-0"]]
+
+    #define FISHY_MISSY_MOVE_ANIM @[[SKTexture textureWithImageNamed:@"girl-0"],[SKTexture textureWithImageNamed:@"girl-1"],[SKTexture textureWithImageNamed:@"girl-0"]]
+
+    #define FISHY_STINKY_MOVE_ANIM @[[SKTexture textureWithImageNamed:@"stinky-0"],[SKTexture textureWithImageNamed:@"stinky-1"],[SKTexture textureWithImageNamed:@"stinky-0"]]
+
+    #define FISHY_SUPER_MOVE_ANIM @[[SKTexture textureWithImageNamed:@"super-fish-0"],[SKTexture textureWithImageNamed:@"super-fish-1"],[SKTexture textureWithImageNamed:@"super-fish-0"]]
+
+    #define CRABBY_MOVE_ANIM @[[SKTexture textureWithImageNamed:@"crabby-0"],[SKTexture textureWithImageNamed:@"crabby-1"]]
+    #define WHALEY_MOVE_ANIM @[[SKTexture textureWithImageNamed:@"whale-1"],[SKTexture textureWithImageNamed:@"whale-0"]]
+
+
 #endif

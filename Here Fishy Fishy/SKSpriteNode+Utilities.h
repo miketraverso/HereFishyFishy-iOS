@@ -13,4 +13,6 @@
 - (NSString*)spriteSize;
 - (NSString*)spriteSizeAndPosition;
 - (CGFloat)spriteBottomEdge;
+- (CGFloat)spriteLeftEdge;
+- (CGFloat)spriteRightEdge;
 @end

@@ -100,18 +100,19 @@
 // Because "callDelegate" is the only method to access the delegate, I can ensure that delegate
 // is not visible in any of my block callbacks.
 
-- (void) callDelegate: (SEL) selector withArg: (id) arg error: (NSError*) err
+- (void)callDelegate:(SEL)selector withArg:(id)arg error:(NSError*)err
 {
 	assert([NSThread isMainThread]);
-	if([delegate respondsToSelector: selector])
+	if([delegate respondsToSelector:selector])
 	{
+        
 		if(arg != NULL)
 		{
-			[_delegate performSelector: selector withObject: arg withObject: err];
+			[_delegate performSelector:selector withObject:arg withObject:err];
 		}
 		else
 		{
-			[_delegate performSelector: selector withObject: err];
+			[_delegate performSelector:selector withObject:err];
 		}
 	}
 	else
@@ -121,11 +122,11 @@
 }
 
 
-- (void) callDelegateOnMainThread: (SEL) selector withArg: (id) arg error: (NSError*) err
+- (void)callDelegateOnMainThread:(SEL)selector withArg:(id)arg error:(NSError*)err
 {
 	dispatch_async(dispatch_get_main_queue(), ^(void)
 	{
-	   [self callDelegate: selector withArg: arg error: err];
+	   [self callDelegate:selector withArg:arg error:err];
 	});
 }
 
@@ -147,10 +148,14 @@
 {
 	if([GKLocalPlayer localPlayer].authenticated == NO)
 	{
-		[[GKLocalPlayer localPlayer] authenticateWithCompletionHandler:^(NSError *error) 
-		{
-			[self callDelegateOnMainThread: @selector(processGameCenterAuth:) withArg: NULL error: error];
-		}];
+        [[GKLocalPlayer localPlayer] setAuthenticateHandler:^(UIViewController *viewController, NSError *error) {
+            [self callDelegateOnMainThread: @selector(processGameCenterAuth:) withArg: NULL error: error];
+        }];
+        
+//		[[GKLocalPlayer localPlayer] authenticateWithCompletionHandler:^(NSError *error) 
+//		{
+//			[self callDelegateOnMainThread: @selector(processGameCenterAuth:) withArg: NULL error: error];
+//		}];
 	}
 }
 

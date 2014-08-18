@@ -1,5 +1,5 @@
 //
-//  HFFMyScene.h
+//  HFFScene.h
 //  Here Fishy Fishy
 //
 
@@ -8,14 +8,6 @@
 
 #import <SpriteKit/SpriteKit.h>
 
-typedef NS_ENUM(int, GameState) {
-    GameStateMainMenu,
-    GameStateTutorial,
-    GameStatePlay,
-    GameStateFalling,
-    GameStateShowingScore,
-    GameStateGameOver
-};
 
 @protocol HFFSceneDelegate
 - (UIImage *)screenshot;
