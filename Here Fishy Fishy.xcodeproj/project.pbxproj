@@ -26,6 +26,7 @@
 		E925097A18BA908F00612051 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E925097918BA908F00612051 /* StoreKit.framework */; };
 		E925098718BCFF2700612051 /* InAppPurchaseHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = E925098618BCFF2700612051 /* InAppPurchaseHelper.m */; };
 		E925098A18BD00D600612051 /* HFFInAppPurchaseHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = E925098918BD00D600612051 /* HFFInAppPurchaseHelper.m */; };
+		E96BF3CA19A23E5F002F023F /* SKSpriteNode+Utilities.m in Sources */ = {isa = PBXBuildFile; fileRef = E96BF3C919A23E5F002F023F /* SKSpriteNode+Utilities.m */; };
 		E9972BD418C5744B005BCC2B /* ArcadeClassic.otf in Resources */ = {isa = PBXBuildFile; fileRef = E9972BCA18C5744B005BCC2B /* ArcadeClassic.otf */; };
 		E9972BD518C5744B005BCC2B /* backgroundLoop.m4a in Resources */ = {isa = PBXBuildFile; fileRef = E9972BCC18C5744B005BCC2B /* backgroundLoop.m4a */; };
 		E9972BD618C5744B005BCC2B /* backgroundLoop.wav in Resources */ = {isa = PBXBuildFile; fileRef = E9972BCD18C5744B005BCC2B /* backgroundLoop.wav */; };
@@ -56,6 +57,7 @@
 		E9E4DFA318BF992400EC8B48 /* Icon-Small-50.png in Resources */ = {isa = PBXBuildFile; fileRef = E9E4DF9D18BF992400EC8B48 /* Icon-Small-50.png */; };
 		E9E4DFA418BF992400EC8B48 /* Icon-Small-50@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E9E4DF9E18BF992400EC8B48 /* Icon-Small-50@2x.png */; };
 		E9E6BB9A18F651D6009B4B53 /* iAd.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9B48EBE18B7095A00B50B7E /* iAd.framework */; };
+		E9F032C81984904100FB2F45 /* FacebookSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9F032C71984904100FB2F45 /* FacebookSDK.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -97,6 +99,8 @@
 		E925098618BCFF2700612051 /* InAppPurchaseHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = InAppPurchaseHelper.m; sourceTree = "<group>"; };
 		E925098818BD00D600612051 /* HFFInAppPurchaseHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HFFInAppPurchaseHelper.h; sourceTree = "<group>"; };
 		E925098918BD00D600612051 /* HFFInAppPurchaseHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HFFInAppPurchaseHelper.m; sourceTree = "<group>"; };
+		E96BF3C819A23E5F002F023F /* SKSpriteNode+Utilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "SKSpriteNode+Utilities.h"; sourceTree = "<group>"; };
+		E96BF3C919A23E5F002F023F /* SKSpriteNode+Utilities.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "SKSpriteNode+Utilities.m"; sourceTree = "<group>"; };
 		E9972BCA18C5744B005BCC2B /* ArcadeClassic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = ArcadeClassic.otf; sourceTree = "<group>"; };
 		E9972BCC18C5744B005BCC2B /* backgroundLoop.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = backgroundLoop.m4a; sourceTree = "<group>"; };
 		E9972BCD18C5744B005BCC2B /* backgroundLoop.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = backgroundLoop.wav; sourceTree = "<group>"; };
@@ -130,6 +134,7 @@
 		E9E4DF9D18BF992400EC8B48 /* Icon-Small-50.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Icon-Small-50.png"; path = "Resources/AppIcons/Icon-Small-50.png"; sourceTree = "<group>"; };
 		E9E4DF9E18BF992400EC8B48 /* Icon-Small-50@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Icon-Small-50@2x.png"; path = "Resources/AppIcons/Icon-Small-50@2x.png"; sourceTree = "<group>"; };
 		E9E6BBC318F652F2009B4B53 /* KiipSDK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = KiipSDK.framework; path = "../../../Downloads/Kiip-iOS-SDK-v2.0.7/KiipSDK.framework"; sourceTree = "<group>"; };
+		E9F032C71984904100FB2F45 /* FacebookSDK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FacebookSDK.framework; path = ../../../Documents/FacebookSDK/FacebookSDK.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -145,6 +150,7 @@
 				E925097A18BA908F00612051 /* StoreKit.framework in Frameworks */,
 				E911BCB818B2FCC900D8B8EC /* CoreGraphics.framework in Frameworks */,
 				E911BCBA18B2FCC900D8B8EC /* UIKit.framework in Frameworks */,
+				E9F032C81984904100FB2F45 /* FacebookSDK.framework in Frameworks */,
 				E911BCBC18B2FCC900D8B8EC /* SpriteKit.framework in Frameworks */,
 				E911BCB618B2FCC900D8B8EC /* Foundation.framework in Frameworks */,
 			);
@@ -183,6 +189,7 @@
 		E911BCB418B2FCC900D8B8EC /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				E9F032C71984904100FB2F45 /* FacebookSDK.framework */,
 				E9E6BBC318F652F2009B4B53 /* KiipSDK.framework */,
 				E9E4DF8218BF8B0C00EC8B48 /* SystemConfiguration.framework */,
 				E9E4DF8018BF892700EC8B48 /* PassKit.framework */,
@@ -220,6 +227,8 @@
 				E925098618BCFF2700612051 /* InAppPurchaseHelper.m */,
 				E925098818BD00D600612051 /* HFFInAppPurchaseHelper.h */,
 				E925098918BD00D600612051 /* HFFInAppPurchaseHelper.m */,
+				E96BF3C819A23E5F002F023F /* SKSpriteNode+Utilities.h */,
+				E96BF3C919A23E5F002F023F /* SKSpriteNode+Utilities.m */,
 			);
 			path = "Here Fishy Fishy";
 			sourceTree = "<group>";
@@ -449,6 +458,7 @@
 				E925098A18BD00D600612051 /* HFFInAppPurchaseHelper.m in Sources */,
 				E911BCC418B2FCC900D8B8EC /* main.m in Sources */,
 				E911BCC818B2FCC900D8B8EC /* HFFAppDelegate.m in Sources */,
+				E96BF3CA19A23E5F002F023F /* SKSpriteNode+Utilities.m in Sources */,
 				E925098718BCFF2700612051 /* InAppPurchaseHelper.m in Sources */,
 				E911BCD118B2FCC900D8B8EC /* HFFScene.m in Sources */,
 			);
@@ -574,6 +584,7 @@
 					/Users/michaelrtraverso/dev/traversoft,
 					"/Users/michaelrtraverso/dev/traversoft/Kiip-iOS-SDK-v2.0.6",
 					/Users/michaelrtraverso/dev/traversoft/SKUtils/Products/,
+					/Users/michaelrtraverso/Documents/FacebookSDK,
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Here Fishy Fishy/Here Fishy Fishy-Prefix.pch";
@@ -599,6 +610,7 @@
 					/Users/michaelrtraverso/dev/traversoft,
 					"/Users/michaelrtraverso/dev/traversoft/Kiip-iOS-SDK-v2.0.6",
 					/Users/michaelrtraverso/dev/traversoft/SKUtils/Products/,
+					/Users/michaelrtraverso/Documents/FacebookSDK,
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Here Fishy Fishy/Here Fishy Fishy-Prefix.pch";
