@@ -126,7 +126,7 @@ NSString *const IAPHelperProductPurchasedNotification = @"IAPHelperProductPurcha
 
 - (void)paymentQueueRestoreCompletedTransactionsFinished:(SKPaymentQueue *)queue
 {
-    NSLog(@"Received restored transactions: %i", queue.transactions.count);
+    NSLog(@"Received restored transactions: %lu", (unsigned long)queue.transactions.count);
     for (SKPaymentTransaction *transaction in queue.transactions)
     {
         [self restoreTransaction:transaction];
@@ -146,6 +146,8 @@ NSString *const IAPHelperProductPurchasedNotification = @"IAPHelperProductPurcha
     
     [self provideContentForProductIdentifier:transaction.payment.productIdentifier];
     [[SKPaymentQueue defaultQueue] finishTransaction:transaction];
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"TransactionCompleted" object:nil];
 }
 
 - (void)restoreTransaction:(SKPaymentTransaction *)transaction

@@ -17,6 +17,12 @@
     dispatch_once(&once, ^{
         NSSet * productIdentifiers = [NSSet setWithObjects:
                                       @"com.traversoft.hff.no.ads",
+                                      @"com.traversoft.hff.clown",
+                                      @"com.traversoft.hff.missy",
+                                      @"com.traversoft.hff.redfish",
+                                      @"com.traversoft.hff.stinky",
+                                      @"com.traversoft.hff.super",
+                                      @"com.traversoft.hff.woody",
                                       nil];
         sharedInstance = [[self alloc] initWithProductIdentifiers:productIdentifiers];
     });
