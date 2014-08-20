@@ -8,6 +8,7 @@
 
 #import "HFFScene.h"
 #import "HFFPurchaseFishy.h"
+#import "HFFAppDelegate.h"
 
 @implementation HFFScene
 {
@@ -47,6 +48,7 @@
     UIAlertView *_restoreAlert;
     BOOL _isRestoreAlertShowing;
     
+    HFFAppDelegate *appDelegate;
     AVAudioPlayer *_player;
 }
 
@@ -62,6 +64,8 @@
         
         _delegate = delegate;
 
+        appDelegate = (HFFAppDelegate *)[[UIApplication sharedApplication] delegate];
+
         _worldNode = [SKNode node];
         [self addChild:_worldNode];
         [self.physicsWorld setContactDelegate:self];
@@ -72,7 +76,6 @@
         [_restoreAlert setDelegate:self];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(restoreFailed) name:@"RestoreTransactionFailed" object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(restoreSuccess) name:@"RestoreTransactionSuccessful" object:nil];
-
         _fadeIn = [SKAction sequence:@[[SKAction waitForDuration:kAnimDelay*3],
                                        [SKAction fadeInWithDuration:kAnimDelay]]];
         _fadeInSlow = [SKAction sequence:@[[SKAction waitForDuration:kAnimDelay*5],
@@ -89,13 +92,10 @@
 {
     [self runAction:_bubbleAction];
     
-    SKAction *walk = [SKAction animateWithTextures:FISHY_MOVE_ANIM timePerFrame:0.05];
+    SKAction *walk = [[appDelegate selectedFish] flapSequence];
     [_fishyFishy runAction:walk];
 
     _fishyVelocity = CGPointMake(0, kImpulse);
-}
-
--(void)crawlCrabby {
 }
 
 -(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
@@ -116,20 +116,26 @@
 
             if ([_gamecenterButton containsPoint:touchLocation]) {
 
+                CLS_LOG(@"Launched GameCenter");
+
                 [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"gamecenter:/me/account"]];
             }
             else if ([_buyFishyButton containsPoint:touchLocation]) {
-                    
+                
+                CLS_LOG(@"Launched Fish Store");
+
                 SKView * skView = (SKView *)self.view;
                 SKScene *scene = [[HFFPurchaseFishy alloc] initWithSize:skView.bounds.size andDelegate:_delegate];
                 scene.scaleMode = SKSceneScaleModeAspectFill;
                 
                 scene.scaleMode = SKSceneScaleModeAspectFill;
-                [skView presentScene:scene];
+                [skView presentScene:scene transition: [SKTransition revealWithDirection:SKTransitionDirectionUp duration:1.0]];
             }
 
             else {
                 
+                CLS_LOG(@"Pressed Play");
+
                 [self switchToPlay];
             }
             break;
@@ -149,37 +155,48 @@
                 
                 if ([_okButton containsPoint:touchLocation]) {
                     
+                    CLS_LOG(@"Replay pressed");
                     [self switchToNewGame];
                 }
                 
                 if ([_shareButton containsPoint:touchLocation]) {
                 
+                    CLS_LOG(@"Share pressed");
                     [self shareScore];
                 }
                 
                 if ([_rateButton containsPoint:touchLocation]) {
                     
-                    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"itms-apps://itunes.apple.com/app/id%@", kAppId]]];
+                    CLS_LOG(@"Share pressed");
+                    if ([[UIApplication sharedApplication] canOpenURL:
+                        [NSURL URLWithString:[NSString stringWithFormat:@"itms-apps://itunes.apple.com/app/id%@", kAppId]]]) {
+                        
+                        [[UIApplication sharedApplication] openURL:
+                         [NSURL URLWithString:[NSString stringWithFormat:@"itms-apps://itunes.apple.com/app/id%@", kAppId]]];
+                    }
                 }
                 
                 if ([_buyButton containsPoint:touchLocation]) {
                     
+                    CLS_LOG(@"Buy no-ads pressed");
                     [self buyButtonTapped];
                 }
                 
                 if ([_restoreButton containsPoint:touchLocation]) {
                     
+                    CLS_LOG(@"Restore pressed");
                     [self restorePurchases];
                 }
                 
                 if ([_buyFishyButton containsPoint:touchLocation]) {
                     
+                    CLS_LOG(@"Fish Store pressed");
                     SKView * skView = (SKView *)self.view;
-                    SKScene *scene = [[HFFPurchaseFishy alloc] initWithSize:skView.bounds.size];
+                    SKScene *scene = [[HFFPurchaseFishy alloc] initWithSize:skView.bounds.size andDelegate:_delegate];
                     scene.scaleMode = SKSceneScaleModeAspectFill;
                     
                     scene.scaleMode = SKSceneScaleModeAspectFill;
-                    [skView presentScene:scene];
+                    [skView presentScene:scene transition: [SKTransition revealWithDirection:SKTransitionDirectionUp duration:1.0]];
                 }
                 
                 _loadedGameOver = NO;
@@ -216,6 +233,24 @@
             {
                 [self runAction:_coinAction withKey:@"Coin"];
             }
+            
+            if ([self getScore] > 0 && [self getScore] % kCrabFrequency == 0) {
+                
+                if (arc4random_uniform(100) > 33.0) {
+                    
+                    // Draw crab in background
+                    [self updateCrabby];
+                    CLS_LOG(@"Crabby witnessed");
+                }
+            }
+            if ([self getScore] > 0 && [self getScore] % kWhaleFrequency == 0) {
+                
+                // Draw whale in background
+                NSLog(@"WHALEY %i - %li", _foregroundSwitches, _obstaclesPassed);
+                [self updateWhaley];
+                CLS_LOG(@"Whaley witnessed");
+            }
+
         }
     }];
 }
@@ -346,19 +381,9 @@
         
         if (foreground.position.x < -foreground.size.width)
         {
+            NSLog(@"Switched! %i - %li", _foregroundSwitches, (long)_obstaclesPassed);
             _foregroundSwitches ++;
             [foreground setPosition:CGPointAdd(foreground.position, CGPointMake(foreground.size.width *  kNumberOfForegrounds, 0))];
-            
-            if (_foregroundSwitches % kCrabFrequency == 0) {
-                // Draw crab in background
-                [self updateCrabby];
-            }
-            else if (_foregroundSwitches % kWhaleFrequency == 0) {
-                // Draw whale in background
-                NSLog(@"WHALEY");
-                [self updateWhaley];
-            }
-
         }
     }];
 }
@@ -401,18 +426,30 @@
     return obstacle;
 }
 
-- (void)startSpawningObstacles
-{
+- (void)startSpawningObstacles {
+    
     SKAction *firstDelay = [SKAction waitForDuration:kFirstObstacleSpawn];
     SKAction *spawn = [SKAction performSelector:@selector(spawnObstacle) onTarget:self];
     SKAction *regularDelay = [SKAction waitForDuration:kSubsequentObstacleSpawn];
     SKAction *spawnSequence = [SKAction sequence:@[spawn, regularDelay]];
     SKAction *foreverSpawnObstacles = [SKAction repeatAction:spawnSequence count:kWhaleFrequency];
     SKAction *overallSequence = [SKAction sequence:@[firstDelay, foreverSpawnObstacles]];
+    [self removeActionForKey:@"Spawn"];
     [self runAction:overallSequence withKey:@"Spawn"];
 }
 
 - (void)stopSpawningObstacles
+{
+    [self removeActionForKey:@"Spawn"];
+    [_worldNode enumerateChildNodesWithName:@"ObstacleTop" usingBlock:^(SKNode *node, BOOL *stop) {
+        [node removeAllActions];
+    }];
+    [_worldNode enumerateChildNodesWithName:@"ObstacleBottom" usingBlock:^(SKNode *node, BOOL *stop) {
+        [node removeAllActions];
+    }];
+}
+
+- (void)stopSpawningAllObstacles
 {
     [self removeActionForKey:@"Spawn"];
     [_worldNode enumerateChildNodesWithName:@"ObstacleTop" usingBlock:^(SKNode *node, BOOL *stop) {
@@ -459,7 +496,7 @@
 {
     _gameState = GameStateShowingScore;
     [_fishyFishy removeAllActions];
-    [self stopSpawningObstacles];
+    [self stopSpawningAllObstacles];
     
     SKAction *moveRight = [SKAction moveToX:-35 duration:.10];
     SKAction *moveLeft = [SKAction moveToX: 35 duration:.10];
@@ -467,7 +504,7 @@
     SKAction *shakeSequence = [SKAction sequence:@[moveRight, moveLeft, moveRight, moveLeft, moveCenter]];
     [_worldNode runAction:shakeSequence];
     
-    SKAction *deadAction = [SKAction setTexture:[SKTexture textureWithImageNamed:@"fish-dead"]];
+    SKAction *deadAction = [SKAction setTexture:[[appDelegate selectedFish] deadTexture]];
     SKAction *rotateAction = [SKAction rotateByAngle:DegreesToRadians(180) duration:0.5];
     SKAction *moveToSurfaceAction = [SKAction moveToY:self.size.height - _fishyFishy.size.height/2 duration:1.5];
     SKAction *moveToSurfaceAction2 = [SKAction moveToY:self.size.height - _fishyFishy.size.height duration:0.5];
@@ -476,13 +513,14 @@
 
     [_fishyFishy runAction:sequence];
     
+    CLS_LOG(@"Game ended with score %ld", (long)[self getScore]);
     [self setupScoreCard];
 }
 
 - (void)switchToFalling
 {
     _gameState = GameStateFalling;
-    [self stopSpawningObstacles];
+    [self stopSpawningAllObstacles];
 }
 
 - (void)switchToNewGame
@@ -562,7 +600,7 @@
     [_fishyFishy removeAllActions];
     
     SKAction *moveToSurfaceAction = [SKAction moveToY:_playableHeight * 0.7 + _playableStart duration:0.5];
-    SKAction *flap = [SKAction animateWithTextures:FISHY_MOVE_ANIM timePerFrame:0.05];
+    SKAction *flap = [[appDelegate selectedFish] flapSequence];
     SKAction *moveToSurfaceAction2 = [SKAction moveToY:_playableHeight * 0.65 + _playableStart duration:0.5];
     SKAction *sequence = [SKAction sequence:@[flap, moveToSurfaceAction, flap, moveToSurfaceAction2 ]];
     [self flapFishy];
@@ -705,13 +743,12 @@
     self.physicsBody.categoryBitMask = EntityCategoryGround;
     self.physicsBody.collisionBitMask = 0;
     self.physicsBody.contactTestBitMask = EntityCategoryPlayer;
-    
 }
 
-- (void)setupForeground
-{
-    for (int backgroundIndex = 0; backgroundIndex < kNumberOfForegrounds; backgroundIndex++)
-    {
+- (void)setupForeground {
+
+    for (int backgroundIndex = 0; backgroundIndex < kNumberOfForegrounds; backgroundIndex++) {
+
         SKSpriteNode *foreground = [[SKSpriteNode alloc] initWithImageNamed:@"foreground"];
         [foreground setAnchorPoint:CGPointMake(0.0, 1.0)];
         [foreground setPosition:CGPointMake( backgroundIndex * self.size.width, _playableStart)];
@@ -721,9 +758,10 @@
     }
 }
 
-- (void)setupFishyFishy
-{
-    _fishyFishy = [[SKSpriteNode alloc] initWithImageNamed:@"fish-0"];
+- (void)setupFishyFishy {
+
+    _fishyFishy = [[SKSpriteNode alloc] initWithTexture:[[appDelegate selectedFish] baseTexture]];
+    [_fishyFishy setScale:.45f];
     [_fishyFishy setPosition:CGPointMake(self.size.width * 0.2, _playableHeight * 0.7 + _playableStart)];
     [_fishyFishy setZPosition:LayerFishyFishy];
     [_worldNode addChild:_fishyFishy];
@@ -740,8 +778,6 @@
     CGPathAddLineToPoint(path, NULL, 1 - offsetX, 19 - offsetY);
     CGPathAddLineToPoint(path, NULL, 3 - offsetX, 31 - offsetY);
     CGPathAddLineToPoint(path, NULL, 35 - offsetX, 46 - offsetY);
-
-    
     CGPathCloseSubpath(path);
     
     _fishyFishy.physicsBody = [SKPhysicsBody bodyWithPolygonFromPath:path];
@@ -753,6 +789,7 @@
 }
 
 - (void)setupCrabby {
+    
     _crabby = [[SKSpriteNode alloc] initWithImageNamed:@"crabby-1"];
     [_crabby setAnchorPoint:CGPointMake(0.5, 0.0)];
     [_crabby setPosition:CGPointMake( -150.0f, _crabStart)];
@@ -762,6 +799,7 @@
 }
 
 - (void)setupWhaley {
+    
     _whaley = [[SKSpriteNode alloc] initWithImageNamed:@"whale-1"];
     [_whaley setAnchorPoint:CGPointMake(0.0, 0.0)];
     [_whaley setPosition:CGPointMake(_whaley.frame.size.width, _whaleStart)];
@@ -829,7 +867,7 @@
 //    }
     
     _restoreButton = [SKSpriteNode spriteNodeWithImageNamed:@"button"];
-    _restoreButton.position = CGPointMake(self.size.width/2-2, self.size.height+1 - kMargin - 20);//CGPointMake(self.size.width * 0.25, self.size.height/2 - scorecard.size.height/2 - 3.3 * kMargin - _buyButton.size.height/2);
+    _restoreButton.position = CGPointMake(self.size.width/2-2, self.size.height+1 - kMargin - 20);
     _restoreButton.zPosition = LayerUI;
     [_worldNode addChild:_restoreButton];
     
@@ -839,12 +877,12 @@
     [_restoreButton addChild:restore];
 
     SKSpriteNode *gameOver = [SKSpriteNode spriteNodeWithImageNamed:@"gameOver"];
-    gameOver.position = CGPointMake(self.size.width/2, [_restoreButton spriteBottomEdge] - kMarginHalf);
+    gameOver.position = CGPointMake(self.size.width/2, [_restoreButton spriteBottomEdge] + 5);
     gameOver.zPosition = LayerUI;
     [_worldNode addChild:gameOver];
 
     SKSpriteNode *scorecard = [SKSpriteNode spriteNodeWithImageNamed:@"scorecard"];
-    scorecard.position = CGPointMake(self.size.width/2, [gameOver spriteBottomEdge] - kMarginDouble);
+    scorecard.position = CGPointMake(self.size.width/2, [gameOver spriteBottomEdge] - kMarginThreeQuarters);
     scorecard.name = @"Tutorial";
     scorecard.zPosition = LayerUI;
     [_worldNode addChild:scorecard];
@@ -962,8 +1000,9 @@
 }
 
 - (BOOL)hasRemoveAdsBeenPurchased {
-    for (SKProduct *product in  [self.delegate getProducts]) {
-        if (product) {
+    
+    for (SKProduct *productIter in  [self.delegate getProducts]) {
+        if (productIter != nil) {
             if ([[HFFInAppPurchaseHelper sharedInstance] productPurchased:@"com.traversoft.hff.no.ads"])
             {
                 return YES;
@@ -1029,7 +1068,7 @@
     _buyFishy.zPosition = LayerGameCenter;
     _buyFishy.name = @"BuyFishy";
 
-    SKAction *walk = [SKAction animateWithTextures:FISHY_MOVE_ANIM timePerFrame:0.15];
+    SKAction *walk = [[appDelegate selectedFish] flapSequence];
     [_buyFishy runAction:[SKAction repeatActionForever:walk]];
 
     [_buyFishyButton addChild:_buyFishy];
@@ -1068,6 +1107,7 @@
 
 - (void)setBestScore
 {
+    CLS_LOG(@"New best score reached :: %ld", (long)[self getScore]);
     [[NSUserDefaults standardUserDefaults] setInteger:[self getScore] forKey:@"best_score"];
     [[NSUserDefaults standardUserDefaults] synchronize];
     [self reportScore:[self getScore] forLeaderboardID:@"com.traversoft.hff.highscores"];
@@ -1109,18 +1149,20 @@
 
 - (void)buyButtonTapped
 {
-    SKProduct *product = [[self.delegate getProducts] objectAtIndex:0]; // Only one IAP to buy  - Remove ads    
-    
+    SKProduct *product = [self.delegate inAppPurchaseForProductId:@"com.traversoft.hff.no.ads"];
     if (product)
+        
     {
         if (![[HFFInAppPurchaseHelper sharedInstance] productPurchased:@"com.traversoft.hff.no.ads"])
         {
             NSLog(@"Buying %@...", product.productIdentifier);
+            CLS_LOG(@"Buying %@...", product.productIdentifier);
             [[HFFInAppPurchaseHelper sharedInstance] buyProduct:product];
         }
     }
     else
     {
+        CLS_LOG(@"Issue buying com.traversoft.hff.no.ads...");
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Oops..." message:@"Something went wrong. Please try your purchase again in a few." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles: nil];
         [alert show];
     }
@@ -1128,18 +1170,25 @@
 
 - (void)restorePurchases
 {
-    SKProduct *product = [[self.delegate getProducts] objectAtIndex:0]; // Only one IAP to buy  - Remove ads
-    
-    if (product)
-    {
-        NSLog(@"Restoring %@...", product.productIdentifier);
-        [[HFFInAppPurchaseHelper sharedInstance] restoreCompletedTransactions];
-    }
-    else
-    {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Oops..." message:@"Something went wrong. Please try your restoring your purchases in a few." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles: nil];
-        [alert show];
-    }
+//    for (SKProduct *product in  [self.delegate getProducts]) {
+//        if (product) {
+    NSLog(@"Restoring transactions...");// product.productIdentifier);
+    [[HFFInAppPurchaseHelper sharedInstance] restoreCompletedTransactions];
+//    }
+//    else {
+//    oops = TRUE;
+//    break;
+//        }
+//    }
+//    if (oops)
+//    {
+//        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Oops..." message:@"Something went wrong. Please try your restoring your purchases in a few." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles: nil];
+//        [alert show];
+//    }
+//    else {
+        [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"restoreAllPurchases"];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+//    }
 }
 
 - (void)restoreSuccess
@@ -1148,6 +1197,7 @@
     _restoreAlert.message = @"Restored purchase";
     if (!_isRestoreAlertShowing)
     {
+        NSLog(@"Restored transactions SUCCESS...");
         _isRestoreAlertShowing = true;
         [_restoreAlert show];
     }
@@ -1159,6 +1209,7 @@
     _restoreAlert.message = @"Error restoring purchase. Please try again.";
     if (!_isRestoreAlertShowing)
     {
+        NSLog(@"Restored transactions FAILED...");
         _isRestoreAlertShowing = true;
         [_restoreAlert show];
     }

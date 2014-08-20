@@ -148,14 +148,14 @@
 {
 	if([GKLocalPlayer localPlayer].authenticated == NO)
 	{
-        [[GKLocalPlayer localPlayer] setAuthenticateHandler:^(UIViewController *viewController, NSError *error) {
-            [self callDelegateOnMainThread: @selector(processGameCenterAuth:) withArg: NULL error: error];
-        }];
+//        [[GKLocalPlayer localPlayer] setAuthenticateHandler:^(UIViewController *viewController, NSError *error) {
+//            [self callDelegateOnMainThread: @selector(processGameCenterAuth:) withArg: NULL error: error];
+//        }];
         
-//		[[GKLocalPlayer localPlayer] authenticateWithCompletionHandler:^(NSError *error) 
-//		{
-//			[self callDelegateOnMainThread: @selector(processGameCenterAuth:) withArg: NULL error: error];
-//		}];
+		[[GKLocalPlayer localPlayer] authenticateWithCompletionHandler:^(NSError *error) 
+		{
+			[self callDelegateOnMainThread: @selector(processGameCenterAuth:) withArg: NULL error: error];
+		}];
 	}
 }
 

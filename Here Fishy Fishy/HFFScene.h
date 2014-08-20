@@ -13,6 +13,7 @@
 - (UIImage *)screenshot;
 - (void)shareString:(NSString *)string url:(NSURL*)url image:(UIImage *)screenshot;
 - (NSArray*)getProducts;
+- (SKProduct*)inAppPurchaseForProductId:(NSString*)productId;
 @end
 
 

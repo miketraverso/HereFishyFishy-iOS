@@ -12,4 +12,6 @@
 
 @interface HFFViewController : UIViewController
 
+- (SKProduct*)inAppPurchaseForProductId:(NSString*)productId;
+
 @end

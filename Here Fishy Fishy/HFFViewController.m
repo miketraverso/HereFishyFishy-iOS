@@ -45,19 +45,41 @@
         if (success)
         {
             _products = products;
-            if ([[HFFInAppPurchaseHelper sharedInstance] productPurchased:@"com.traversoft.hff.no.ads"])
-            {
-                _shouldShowAds = NO;
-                self.canDisplayBannerAds = _shouldShowAds;
-            }
-            else
-            {
-                _shouldShowAds = YES;
-                self.canDisplayBannerAds = _shouldShowAds;
+            for (SKProduct *product in products) {
+
+                if ([[HFFInAppPurchaseHelper sharedInstance] productPurchased:[product productIdentifier]]) {
+                    
+                    [[NSUserDefaults standardUserDefaults] setBool:YES forKey:[product productIdentifier]];
+                    
+                    if ([[HFFInAppPurchaseHelper sharedInstance] productPurchased:@"com.traversoft.hff.no.ads"]) {
+
+                        _shouldShowAds = NO;
+                        self.canDisplayBannerAds = _shouldShowAds;
+                        CLS_LOG(@"Not showing ads");
+                    } else {
+                        
+                        _shouldShowAds = YES;
+                        self.canDisplayBannerAds = _shouldShowAds;
+                        CLS_LOG(@"Showing ads");
+                    }
+
+                    SKProduct *pro = [self inAppPurchaseForProductId:[product productIdentifier]];
+                    if ( pro ) {
+                        
+                        if ([[HFFInAppPurchaseHelper sharedInstance] productPurchased:[pro productIdentifier]]) {
+                            
+                            [[NSUserDefaults standardUserDefaults] setBool:YES forKey:[pro productIdentifier]];
+                        }
+                        else {
+                            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:[pro productIdentifier]];
+                        }
+                    }
+                }
             }
         }
     }];
-    
+    [[NSUserDefaults standardUserDefaults] synchronize];
+
     
     // Configure the view.
     SKView * skView = (SKView *)self.view;
@@ -105,6 +127,8 @@
 
 - (UIImage *)screenshot
 {
+    CLS_LOG(@"Taking screenshot");
+
     UIGraphicsBeginImageContextWithOptions(self.view.bounds.size, NO, 1.0);
     [self.view drawViewHierarchyInRect:self.view.bounds afterScreenUpdates:YES];
     UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
@@ -117,10 +141,41 @@
     return _products;
 }
 
+- (SKProduct*)inAppPurchaseForProductId:(NSString*)productId {
+    
+    for (SKProduct *product in  [self getProducts]) {
+        if (product) {
+            if ([[[product productIdentifier] lowercaseString] isEqualToString: productId])
+            {
+                return product;
+            }
+        }
+    }
+    return nil;
+}
 
 - (void)achievementViewControllerDidFinish:(GKAchievementViewController *)viewController
 {
     
 }
+
+- (void) processGameCenterAuth: (NSError*) error
+{
+	if (error)
+//	{
+//		[gameCenterManager reloadHighScoresForCategory: self.currentLeaderBoard];
+//	}
+//	else
+	{
+        CLS_LOG(@"Error processing game center auth :: %@", error);
+
+		UIAlertView* alert= [[UIAlertView alloc] initWithTitle: @"Game Center Account Required"
+                                                        message: [NSString stringWithFormat: @"Reason: %@", [error localizedDescription]]
+                                                       delegate: self cancelButtonTitle: @"Try Again..." otherButtonTitles: nil];
+		[alert show];
+	}
+	
+}
+
 
 @end

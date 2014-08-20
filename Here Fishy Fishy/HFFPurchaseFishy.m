@@ -10,15 +10,16 @@
 #import "HFFViewController.h"
 #import "HFFScene.h"
 #import "UIImage+Utilities.h"
-#import <M13OrderedDictionary.h>
+#import "HFFAppDelegate.h"
 #import "PurchasableFish.h"
 
 @implementation HFFPurchaseFishy
 {
     SKNode *_worldNode;
     SKSpriteNode *_fishyFishy;
-    SKSpriteNode *_prevButton, *_buyButton, *_nextButton, *_playButton;
+    SKSpriteNode *_prevButton, *_buyButton, *_okButton, *_nextButton, *_playButton;
     SKSpriteNode *_obstacleLeft, *_obstacleRight;
+    SKSpriteNode *price, *buy, *ok;
     CGPoint _fishyVelocity;
     
     float _playableStart, _playableHeight;
@@ -39,9 +40,8 @@
     UIAlertView *_restoreAlert;
     BOOL _isRestoreAlertShowing;
     
+    HFFAppDelegate *_appDelegate;
     AVAudioPlayer *_player;
-    
-    M13MutableOrderedDictionary *purchaseableItems;
     NSInteger current;
     SKAction *sequence, *redSequence, *stinkySequence, *clownSequence, *superSequence, *missySequence, *woodSequence;
 
@@ -52,6 +52,8 @@
     if (self = [super initWithSize:size]) {
         
         _delegate = delegate;
+        _appDelegate = (HFFAppDelegate *)[[UIApplication sharedApplication] delegate];
+
         _worldNode = [SKNode node];
         [self addChild:_worldNode];
         [self.physicsWorld setContactDelegate:self];
@@ -61,23 +63,15 @@
         _isRestoreAlertShowing = false;
         [_restoreAlert setDelegate:self];
 
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(purchaseComplete) name:@"TransactionCompleted" object:nil];
+        
         _fadeIn = [SKAction sequence:@[[SKAction waitForDuration:kAnimDelay*3],
                                        [SKAction fadeInWithDuration:kAnimDelay]]];
         _fadeInSlow = [SKAction sequence:@[[SKAction waitForDuration:kAnimDelay*5],
                                            [SKAction fadeInWithDuration:kAnimDelay]]];
         [self setupStore];
         
-        PurchasableFish *orange = [[PurchasableFish alloc] initWithName:@"fish" andId:@"com.traversoft.hff.fish"];
-        PurchasableFish *red = [[PurchasableFish alloc] initWithName:@"red" andId:@"com.traversoft.hff.redfish"];
-        PurchasableFish *girl = [[PurchasableFish alloc] initWithName:@"girl" andId:@"com.traversoft.hff.missy"];
-        PurchasableFish *superFish = [[PurchasableFish alloc] initWithName:@"super-fish" andId:@"com.traversoft.hff.super"];
-        PurchasableFish *clown = [[PurchasableFish alloc] initWithName:@"clown" andId:@"com.traversoft.hff.clown"];
-        PurchasableFish *stinky = [[PurchasableFish alloc] initWithName:@"stinky" andId:@"com.traversoft.hff.stinky"];
-        PurchasableFish *woody = [[PurchasableFish alloc] initWithName:@"wood-fish" andId:@"com.traversoft.hff.woody"];
-        
-        purchaseableItems = [[M13MutableOrderedDictionary alloc]
-                             initWithObjects:@[orange, red, girl, clown, stinky, woody, superFish]
-                             pairedWithKeys:@[orange.idName, red.idName, girl.idName, clown.idName, stinky.idName, woody.idName, superFish.idName]];
+
         current = 0;
     }
     return self;
@@ -91,6 +85,10 @@
     [self setupForeground];
     [self setupObstacles];
     [self setupUserInterface];
+    
+    for (NSInteger index = 0; index < _appDelegate.purchaseableItems.count; index++) {
+        [self setFish:index];
+    }
     
     [_fishyFishy removeAllActions];
     
@@ -112,8 +110,8 @@
     [_worldNode addChild:_fishyFishy];
 }
 
--(void)flapFishy
-{
+-(void)flapFishy {
+
     [self runAction:_bubbleAction];
     
     SKAction *walk = [SKAction animateWithTextures:FISHY_MOVE_ANIM timePerFrame:0.05];
@@ -196,15 +194,27 @@
     [_worldNode addChild:_playButton];
 
     
-    SKSpriteNode *buy = [SKSpriteNode spriteNodeWithImageNamed:@"buy"];
+    buy = [SKSpriteNode spriteNodeWithImageNamed:@"buy"];
     buy.position = CGPointMake(self.size.width/2, [_fishyFishy spriteBottomEdge]);
     buy.zPosition = LayerUI;
     [_worldNode addChild:buy];
 
 
-    SKSpriteNode *price = [SKSpriteNode spriteNodeWithImageNamed:@"price"];
+    price = [SKSpriteNode spriteNodeWithImageNamed:@"price"];
     price.position = CGPointZero;
     price.zPosition = LayerUI;
+    
+    ok = [SKSpriteNode spriteNodeWithImageNamed:@"ok"];
+    ok.position = CGPointZero;
+    ok.zPosition = LayerUI;
+    _okButton = [SKSpriteNode spriteNodeWithImageNamed:@"button"];
+    _okButton.position = CGPointMake(self.size.width/2, [buy spriteBottomEdge] - kMarginHalf);
+    _okButton.zPosition = LayerUI;
+    [_okButton addChild:ok];
+    [_worldNode addChild:_okButton];
+    [_okButton setHidden:YES];
+    
+
     _buyButton = [SKSpriteNode spriteNodeWithImageNamed:@"button-yellow"];
     _buyButton.position = CGPointMake(self.size.width/2, [buy spriteBottomEdge] - kMarginHalf);
     _buyButton.zPosition = LayerUI;
@@ -213,8 +223,8 @@
 
 }
 
--(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
-{
+-(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
+    
     UITouch *touch = [touches anyObject];
     CGPoint touchLocation = [touch locationInNode:self];
 
@@ -230,29 +240,105 @@
     if ([_nextButton containsPoint:touchLocation]) {
         [_nextButton setAlpha:1.f];
         current+=1;
-        if (current >= purchaseableItems.count) {
+        if (current >= _appDelegate.purchaseableItems.count) {
             current = 0;
         }
-        PurchasableFish *fish = (PurchasableFish*)[purchaseableItems objectAtIndex:current];
-        [_fishyFishy removeAllActions];
-        [_fishyFishy setTexture:[fish baseTexture]];
-        [_fishyFishy runAction:[SKAction repeatActionForever:[fish animateToPosition:_playableHeight andStartFrom:_playableStart]]];
 
+        [self setFish:current];
     }
+    
     if ([_prevButton containsPoint:touchLocation]) {
         [_prevButton setAlpha:1.f];
         if (current <= 0) {
-            current = purchaseableItems.count - 1;
+            current = _appDelegate.purchaseableItems.count - 1;
         }
         else {
             current-=1;
         }
-        PurchasableFish *fish = (PurchasableFish*)[purchaseableItems objectAtIndex:current];
-        [_fishyFishy removeAllActions];
-        [_fishyFishy setTexture:[fish baseTexture]];
-        [_fishyFishy runAction:[SKAction repeatActionForever:[fish animateToPosition:_playableHeight andStartFrom:_playableStart]]];
-
+        
+        [self setFish:current];
     }
     
+    if ([_buyButton containsPoint:touchLocation]) {
+        
+        PurchasableFish *fish = (PurchasableFish*)[_appDelegate.purchaseableItems objectAtIndex:current];
+        SKProduct *product = [self.delegate inAppPurchaseForProductId:[fish idName]];
+        if (product) {
+            
+            if (![[HFFInAppPurchaseHelper sharedInstance] productPurchased:product.productIdentifier]) {
+                NSLog(@"Buying %@...", fish.name);
+                CLS_LOG(@"Trying to buy :: %@", product.productIdentifier);
+                [[HFFInAppPurchaseHelper sharedInstance] buyProduct:product];
+            }
+        }
+        else {
+            
+            CLS_LOG(@"Error trying to buy :: %@", fish.name);
+
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Oops..." message:@"Something went wrong. Please try your purchase again in a few." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles: nil];
+            [alert show];
+        }
+    }
+    if ([_okButton containsPoint:touchLocation]) {
+        
+        PurchasableFish *fish = (PurchasableFish*)[_appDelegate.purchaseableItems objectAtIndex:current];
+        if (fish != nil) {
+
+            CLS_LOG(@"Selected to play as :: %@", fish.name);
+
+            [_appDelegate setSelectedFish:fish];
+            SKView * skView = (SKView *)self.view;
+            SKScene *scene = [[HFFScene alloc] initWithSize:skView.bounds.size andDelegate:nil];
+            scene.scaleMode = SKSceneScaleModeAspectFill;
+            
+            scene.scaleMode = SKSceneScaleModeAspectFill;
+            [skView presentScene:scene];
+        }
+    }
 }
+
+-(void)setFish:(NSInteger)index {
+    
+    if (index < 0 && index > _appDelegate.purchaseableItems.count) {
+        return;
+    }
+    
+    PurchasableFish *fish = (PurchasableFish*)[_appDelegate.purchaseableItems objectAtIndex:index];
+    [_fishyFishy removeAllActions];
+    [_fishyFishy setTexture:[fish baseTexture]];
+    [_fishyFishy runAction:[SKAction repeatActionForever:[fish animateToPosition:_playableHeight andStartFrom:_playableStart]]];
+    
+    BOOL fishUnlocked = [[NSUserDefaults standardUserDefaults] boolForKey:[fish idName]];
+    [fish setUnlocked:fishUnlocked];
+    if ([fish unlocked]) {
+        
+        if (![_buyButton isHidden]) {
+            [_buyButton setHidden:YES];
+            [_okButton setHidden:NO];
+            [self update:0];
+        }
+    }
+    else {
+        [_buyButton setHidden:NO];
+        [_okButton setHidden:YES];
+    }
+}
+
+- (void)purchaseComplete {
+    
+    _restoreAlert.title = @"Thank you";
+    _restoreAlert.message = @"Thank you for your purchase!";
+    if (!_isRestoreAlertShowing)
+    {
+        _isRestoreAlertShowing = true;
+        [_restoreAlert show];
+    }
+}
+
+- (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex
+{
+    _isRestoreAlertShowing = false;
+    [self setFish:current];
+}
+
 @end

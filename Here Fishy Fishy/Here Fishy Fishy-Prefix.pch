@@ -78,6 +78,7 @@
     static const float kSubsequentObstacleSpawn = 1.5;
 
     static const float kMarginDouble = 60;
+    static const float kMarginThreeQuarters = 45;
     static const float kMargin = 30;
     static const float kMarginHalf = 15;
     static const float kAnimDelay = 0.3;
