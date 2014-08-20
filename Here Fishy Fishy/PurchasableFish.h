@@ -16,6 +16,11 @@
 @property (nonatomic) BOOL unlocked;
 
 - (id) initWithName:(NSString*)name andId:(NSString*)idName;
+- (id) initWithName:(NSString*)name andId:(NSString*)idName andUnlocked:(BOOL)unlocked;
 - (SKTexture*) baseTexture;
+- (UIImage*) baseImage;
+- (SKTexture*) deadTexture;
+- (UIImage*) deadImage;
+- (SKAction*) flapSequence;
 - (SKAction*) animateToPosition:(CGFloat)height andStartFrom:(CGFloat)start;
 @end

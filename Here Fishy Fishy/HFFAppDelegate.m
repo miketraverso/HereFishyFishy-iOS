@@ -19,7 +19,21 @@
 //    Kiip *kiip = [[Kiip alloc] initWithAppKey:@"467748b0b19978c496eb7bf8ae4f4b3c" andSecret:@"34275e8cbdf01b74cf3e58bb924b4d19"];
 //    kiip.delegate = self;
 //    [Kiip setSharedInstance:kiip];
-    
+    [Crashlytics startWithAPIKey:@"37c26a6ed45a1ad1a9992a47f06612d4b0a22189"];
+
+    PurchasableFish *orange = [[PurchasableFish alloc] initWithName:@"fish" andId:@"com.traversoft.hff.fish" andUnlocked:YES];
+    PurchasableFish *red = [[PurchasableFish alloc] initWithName:@"red" andId:@"com.traversoft.hff.redfish"];
+    PurchasableFish *girl = [[PurchasableFish alloc] initWithName:@"girl" andId:@"com.traversoft.hff.missy"];
+    PurchasableFish *superFish = [[PurchasableFish alloc] initWithName:@"super-fish" andId:@"com.traversoft.hff.super"];
+    PurchasableFish *clown = [[PurchasableFish alloc] initWithName:@"clown" andId:@"com.traversoft.hff.clown"];
+    PurchasableFish *stinky = [[PurchasableFish alloc] initWithName:@"stinky" andId:@"com.traversoft.hff.stinky"];
+    PurchasableFish *woody = [[PurchasableFish alloc] initWithName:@"wood-fish" andId:@"com.traversoft.hff.woody"];
+
+    _selectedFish = orange;
+    _purchaseableItems = [[M13MutableOrderedDictionary alloc]
+                          initWithObjects:@[orange, red, girl, clown, stinky, woody, superFish]
+                          pairedWithKeys:@[orange.idName, red.idName, girl.idName, clown.idName, stinky.idName, woody.idName, superFish.idName]];
+
     // Override point for customization after application launch.
     return YES;
 }
@@ -52,14 +66,30 @@
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
 }
 
-- (void)restorePurchases
-{
-    if ([[NSUserDefaults standardUserDefaults] objectForKey:@"restoreAllPurchases"])
-    {
-        BOOL shouldRestore = [[NSUserDefaults standardUserDefaults] boolForKey:@"restoreAllPurchases"];
+- (void)unlockPurchasesLocally {
+    
+    for (PurchasableFish *fish in _purchaseableItems) {
         
-        if (shouldRestore)
-            [[HFFInAppPurchaseHelper sharedInstance] restoreCompletedTransactions];
+        if ([[NSUserDefaults standardUserDefaults] boolForKey:[fish idName]]) {
+            
+            [fish setUnlocked:YES];
+        }
     }
 }
+
+- (void)restorePurchases {
+    
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:@"restoreAllPurchases"]) {
+        
+        BOOL shouldRestore = [[NSUserDefaults standardUserDefaults] boolForKey:@"restoreAllPurchases"];
+        
+        if (shouldRestore) {
+            [[HFFInAppPurchaseHelper sharedInstance] restoreCompletedTransactions];
+            CLS_LOG(@"Restored purchases");
+        }
+    }
+}
+
+
+
 @end

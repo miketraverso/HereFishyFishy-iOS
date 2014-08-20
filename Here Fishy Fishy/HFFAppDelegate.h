@@ -9,10 +9,13 @@
 #import <UIKit/UIKit.h>
 #import "GameCenterManager.h"
 //#import <KiipSDK/KiipSDK.h>
+#import <M13OrderedDictionary.h>
+#import "PurchasableFish.h"
 
 @interface HFFAppDelegate : UIResponder <UIApplicationDelegate>//,KiipDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
 @property (strong, nonatomic) GameCenterManager *gameCenterManager;
-
+@property (strong, nonatomic) M13MutableOrderedDictionary *purchaseableItems;
+@property (strong, nonatomic) PurchasableFish *selectedFish;
 @end

@@ -27,9 +27,35 @@
     return self;
 }
 
+- (id) initWithName:(NSString*)name andId:(NSString*)idName andUnlocked:(BOOL)unlocked {
+    
+    self = [self initWithName:name andId:idName];
+    [self setUnlocked:unlocked];
+    return self;
+}
+
 - (SKTexture*) baseTexture {
     
     return [SKTexture textureWithImage:[UIImage imageNamed: [NSString stringWithFormat:@"%@-0", _name]]];
+}
+
+- (UIImage*) baseImage {
+    
+    return [UIImage imageNamed: [NSString stringWithFormat:@"%@-0", _name]];
+}
+
+- (SKTexture*) deadTexture {
+    
+    return [SKTexture textureWithImage:[UIImage imageNamed: [NSString stringWithFormat:@"%@-dead", _name]]];
+}
+
+- (UIImage*) deadImage {
+    
+    return [UIImage imageNamed: [NSString stringWithFormat:@"%@-dead", _name]];
+}
+
+- (SKAction*) flapSequence {
+    return _flapSequence;
 }
 
 - (SKAction*) animateToPosition:(CGFloat)height andStartFrom:(CGFloat)start {
