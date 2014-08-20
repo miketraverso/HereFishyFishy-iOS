@@ -16,11 +16,23 @@
     #import <SKUtils/SKUtils.h>
     #import <GameKit/GameKit.h>
     #import <StoreKit/StoreKit.h>
+    #import <Crashlytics/Crashlytics.h>
     #import "HFFInAppPurchaseHelper.h"
     //#import <KiipSDK/KiipSDK.h>
     #import <AVFoundation/AVFoundation.h>
     #import "SKSpriteNode+Utilities.h"
     #import <FacebookSDK/FacebookSDK.h>
+
+    //Leaderboard Category IDs
+    #define kEasyLeaderboardID @"com.appledts.EasyTapList"
+    #define kHardLeaderboardID @"com.appledts.HardTapList"
+    #define kAwesomeLeaderboardID @"com.appledts.AwesomeTapList"
+
+
+    //Achievement IDs
+    #define kAchievementGotOneTap @"com.appletest.one_tap"
+    #define kAchievementHidden20Taps @"com.appledts.twenty_taps"
+    #define kAchievementBigOneHundred @"com.appledts.one_hundred_taps"
 
     typedef NS_ENUM(int, GameState) {
         GameStateMainMenu,
@@ -53,8 +65,8 @@
     };
 
     static const int kNumberOfForegrounds = 2;
-    static const int kWhaleFrequency = 5;
-    static const int kCrabFrequency = 2;
+    static const int kWhaleFrequency = 10;
+    static const int kCrabFrequency = 8;
 
     static const float kGravity = -1500.0;
     static const float kImpulse = 400.0;
