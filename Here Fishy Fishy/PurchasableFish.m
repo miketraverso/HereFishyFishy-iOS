@@ -31,6 +31,8 @@
     
     self = [self initWithName:name andId:idName];
     [self setUnlocked:unlocked];
+    [[NSUserDefaults standardUserDefaults] setBool:unlocked forKey:idName];
+    [[NSUserDefaults standardUserDefaults] synchronize];
     return self;
 }
 
