@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		3CCF7EFD98944CEEBCB299E8 /* libPods-Here Fishy Fishy.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 867FDBA61A41456C9AD154E6 /* libPods-Here Fishy Fishy.a */; };
-		3E2F9C09C85B402EA46BF1D3 /* libPods-Here Fishy FishyTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7AD80583C51F42C581B0F5C8 /* libPods-Here Fishy FishyTests.a */; };
 		E911BCB618B2FCC900D8B8EC /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E911BCB518B2FCC900D8B8EC /* Foundation.framework */; };
 		E911BCB818B2FCC900D8B8EC /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E911BCB718B2FCC900D8B8EC /* CoreGraphics.framework */; };
 		E911BCBA18B2FCC900D8B8EC /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E911BCB918B2FCC900D8B8EC /* UIKit.framework */; };
@@ -79,7 +78,6 @@
 /* Begin PBXFileReference section */
 		5184AA0CD3BF4DC485F7F946 /* Pods-Here Fishy Fishy.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Here Fishy Fishy.xcconfig"; path = "Pods/Pods-Here Fishy Fishy.xcconfig"; sourceTree = "<group>"; };
 		76C5512786AF4F8996FCA4B0 /* Pods-Here Fishy FishyTests.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Here Fishy FishyTests.xcconfig"; path = "Pods/Pods-Here Fishy FishyTests.xcconfig"; sourceTree = "<group>"; };
-		7AD80583C51F42C581B0F5C8 /* libPods-Here Fishy FishyTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Here Fishy FishyTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		867FDBA61A41456C9AD154E6 /* libPods-Here Fishy Fishy.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Here Fishy Fishy.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E911BCB218B2FCC900D8B8EC /* Here Fishy Fishy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Here Fishy Fishy.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E911BCB518B2FCC900D8B8EC /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -180,7 +178,6 @@
 			files = (
 				E911BCDE18B2FCC900D8B8EC /* UIKit.framework in Frameworks */,
 				E911BCDD18B2FCC900D8B8EC /* Foundation.framework in Frameworks */,
-				3E2F9C09C85B402EA46BF1D3 /* libPods-Here Fishy FishyTests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -226,7 +223,6 @@
 				E911BCB918B2FCC900D8B8EC /* UIKit.framework */,
 				E911BCBB18B2FCC900D8B8EC /* SpriteKit.framework */,
 				867FDBA61A41456C9AD154E6 /* libPods-Here Fishy Fishy.a */,
-				7AD80583C51F42C581B0F5C8 /* libPods-Here Fishy FishyTests.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -537,7 +533,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "./Crashlytics.framework/run 37c26a6ed45a1ad1a9992a47f06612d4b0a22189 426cc7e3d9f7363edfd6dc360255429510fc9aaf490422259e9240e317bbb681";
+			shellScript = "./Crashlytics.framework/run 37c26a6ed45a1ad1a9992a47f06612d4b0a22189 426cc7e3d9f7363edfd6dc360255429510fc9aaf490422259e9240e317bbb681\n\n#!/bin/bash\nbuildNumber=$(/usr/libexec/PlistBuddy -c \"Print CFBundleVersion\" \"$INFOPLIST_FILE\")\nbuildNumber=$(($buildNumber + 1))\n/usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $buildNumber\" \"$INFOPLIST_FILE\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -689,7 +685,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Here Fishy Fishy/Here Fishy Fishy-Prefix.pch";
 				INFOPLIST_FILE = "Here Fishy Fishy/Here Fishy Fishy-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 6.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "CC866DD3-F6F3-4AAD-8A34-09B1B2C93518";
 				SPRITEKIT_TEXTURE_ATLAS_OUTPUT = YES;
@@ -717,7 +713,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Here Fishy Fishy/Here Fishy Fishy-Prefix.pch";
 				INFOPLIST_FILE = "Here Fishy Fishy/Here Fishy Fishy-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 6.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "CC866DD3-F6F3-4AAD-8A34-09B1B2C93518";
 				SPRITEKIT_TEXTURE_ATLAS_OUTPUT = YES;
