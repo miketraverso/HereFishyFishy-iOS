@@ -20,21 +20,6 @@
 	<string>2.0</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
-	<key>CFBundleVersion</key>
-	<string>2.0</string>
-	<key>LSRequiresIPhoneOS</key>
-	<true/>
-	<key>UIAppFonts</key>
-	<array>
-		<string>Karmatic Arcade.otf</string>
-		<string>ArcadeClassic.otf</string>
-	</array>
-	<key>UIMainStoryboardFile</key>
-	<string>Main</string>
-	<key>FacebookAppID</key>
-	<string>712206295517039</string>
-	<key>FacebookDisplayName</key>
-	<string>Here Fishy Fishy</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -44,8 +29,23 @@
 			</array>
 		</dict>
 	</array>
+	<key>CFBundleVersion</key>
+	<string>48</string>
+	<key>FacebookAppID</key>
+	<string>712206295517039</string>
+	<key>FacebookDisplayName</key>
+	<string>Here Fishy Fishy</string>
 	<key>LSApplicationCategoryType</key>
 	<string></string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Karmatic Arcade.otf</string>
+		<string>ArcadeClassic.otf</string>
+	</array>
+	<key>UIMainStoryboardFile</key>
+	<string>Main</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>armv7</string>
