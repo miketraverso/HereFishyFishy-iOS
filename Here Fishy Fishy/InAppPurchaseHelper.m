@@ -145,8 +145,8 @@ NSString *const IAPHelperProductPurchasedNotification = @"IAPHelperProductPurcha
 
 - (void)paymentQueue:(SKPaymentQueue *)queue restoreCompletedTransactionsFailedWithError:(NSError *)error
 {
-    NSLog(@"Restored Transaction Failed...");
-    NSLog(@"Error %@", [error userInfo]);
+    CLSNSLog(@"Restored Transaction Failed...");
+    CLSNSLog(@"Error %@", [error userInfo]);
 }
 
 - (void)completeTransaction:(SKPaymentTransaction *)transaction

@@ -1208,7 +1208,7 @@
 -(void)restoreCompleteFinished:(NSNotification*)notification {
     
     _restoreAlert.title = @"Success";
-    _restoreAlert.message = @"Restored purchase";
+    _restoreAlert.message = @"Restored all previous purchases!";
     if (!_isRestoreAlertShowing)
     {
         NSLog(@"Restored transactions SUCCESS...");
