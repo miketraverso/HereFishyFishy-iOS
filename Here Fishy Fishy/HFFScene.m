@@ -48,12 +48,20 @@
     UIAlertView *_restoreAlert;
     BOOL _isRestoreAlertShowing;
     
-    HFFAppDelegate *appDelegate;
+    HFFAppDelegate *_appDelegate;
     AVAudioPlayer *_player;
 }
 
-- (void)dealloc
+-(void)didMoveToView:(SKView *)view {
+    [super didMoveToView:view];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(restoreFailed) name:@"RestoreTransactionFailed" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(restoreCompleteFinished:) name:@"RestoreCompleteFinished" object:nil];
+}
+-(void)willMoveFromView:(SKView *)view
 {
+    [super willMoveFromView:view];
+    
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
@@ -64,7 +72,7 @@
         
         _delegate = delegate;
 
-        appDelegate = (HFFAppDelegate *)[[UIApplication sharedApplication] delegate];
+        _appDelegate = (HFFAppDelegate *)[[UIApplication sharedApplication] delegate];
 
         _worldNode = [SKNode node];
         [self addChild:_worldNode];
@@ -74,8 +82,7 @@
         _restoreAlert = [[UIAlertView alloc] initWithTitle:@"" message:@"" delegate:nil cancelButtonTitle:@"OK" otherButtonTitles: nil];
         _isRestoreAlertShowing = false;
         [_restoreAlert setDelegate:self];
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(restoreFailed) name:@"RestoreTransactionFailed" object:nil];
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(restoreSuccess) name:@"RestoreTransactionSuccessful" object:nil];
+        
         _fadeIn = [SKAction sequence:@[[SKAction waitForDuration:kAnimDelay*3],
                                        [SKAction fadeInWithDuration:kAnimDelay]]];
         _fadeInSlow = [SKAction sequence:@[[SKAction waitForDuration:kAnimDelay*5],
@@ -92,7 +99,7 @@
 {
     [self runAction:_bubbleAction];
     
-    SKAction *walk = [[appDelegate selectedFish] flapSequence];
+    SKAction *walk = [[_appDelegate selectedFish] flapSequence];
     [_fishyFishy runAction:walk];
 
     _fishyVelocity = CGPointMake(0, kImpulse);
@@ -504,7 +511,7 @@
     SKAction *shakeSequence = [SKAction sequence:@[moveRight, moveLeft, moveRight, moveLeft, moveCenter]];
     [_worldNode runAction:shakeSequence];
     
-    SKAction *deadAction = [SKAction setTexture:[[appDelegate selectedFish] deadTexture]];
+    SKAction *deadAction = [SKAction setTexture:[[_appDelegate selectedFish] deadTexture]];
     SKAction *rotateAction = [SKAction rotateByAngle:DegreesToRadians(180) duration:0.5];
     SKAction *moveToSurfaceAction = [SKAction moveToY:self.size.height - _fishyFishy.size.height/2 duration:1.5];
     SKAction *moveToSurfaceAction2 = [SKAction moveToY:self.size.height - _fishyFishy.size.height duration:0.5];
@@ -600,7 +607,7 @@
     [_fishyFishy removeAllActions];
     
     SKAction *moveToSurfaceAction = [SKAction moveToY:_playableHeight * 0.7 + _playableStart duration:0.5];
-    SKAction *flap = [[appDelegate selectedFish] flapSequence];
+    SKAction *flap = [[_appDelegate selectedFish] flapSequence];
     SKAction *moveToSurfaceAction2 = [SKAction moveToY:_playableHeight * 0.65 + _playableStart duration:0.5];
     SKAction *sequence = [SKAction sequence:@[flap, moveToSurfaceAction, flap, moveToSurfaceAction2 ]];
     [self flapFishy];
@@ -760,7 +767,7 @@
 
 - (void)setupFishyFishy {
 
-    _fishyFishy = [[SKSpriteNode alloc] initWithTexture:[[appDelegate selectedFish] baseTexture]];
+    _fishyFishy = [[SKSpriteNode alloc] initWithTexture:[[_appDelegate selectedFish] baseTexture]];
     [_fishyFishy setScale:.45f];
     [_fishyFishy setPosition:CGPointMake(self.size.width * 0.2, _playableHeight * 0.7 + _playableStart)];
     [_fishyFishy setZPosition:LayerFishyFishy];
@@ -1005,10 +1012,13 @@
         if (productIter != nil) {
             if ([[HFFInAppPurchaseHelper sharedInstance] productPurchased:@"com.traversoft.hff.no.ads"])
             {
+                [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"com.traversoft.hff.no.ads"];
                 return YES;
             }
         }
     }
+    
+    [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"com.traversoft.hff.no.ads"];
     return NO;
 }
 
@@ -1068,7 +1078,7 @@
     _buyFishy.zPosition = LayerGameCenter;
     _buyFishy.name = @"BuyFishy";
 
-    SKAction *walk = [[appDelegate selectedFish] flapSequence];
+    SKAction *walk = [[_appDelegate selectedFish] flapSequence];
     [_buyFishy runAction:[SKAction repeatActionForever:walk]];
 
     [_buyFishyButton addChild:_buyFishy];
@@ -1191,7 +1201,46 @@
 //    }
 }
 
-- (void)restoreSuccess
+- (void)restoreComplete {
+    
+}
+
+-(void)restoreCompleteFinished:(NSNotification*)notification {
+    
+    _restoreAlert.title = @"Success";
+    _restoreAlert.message = @"Restored purchase";
+    if (!_isRestoreAlertShowing)
+    {
+        NSLog(@"Restored transactions SUCCESS...");
+        _isRestoreAlertShowing = true;
+        [_restoreAlert show];
+        if ([notification.name isEqualToString:@"RestoreCompleteFinished"])
+        {
+            NSDictionary* userInfo = notification.userInfo;
+            if (userInfo) {
+                NSMutableArray *productIds = (NSMutableArray*)userInfo[@"productIdentifiers"];
+                CLSNSLog (@"Successfully received restore transaction success notification! %lu", (unsigned long)productIds.count);
+                
+
+                for (int index = 0; index < _appDelegate.purchaseableItems.count; index++) {
+                    
+                    PurchasableFish *fish = [[_appDelegate purchaseableItems] objectAtIndex:index];
+                    if ([productIds indexOfObject:[fish idName]] != NSNotFound) {
+
+                        [fish setUnlocked:YES];
+                        [fish setUnlocked:[[NSUserDefaults standardUserDefaults] boolForKey:[fish idName]]];
+                        CLSNSLog (@"Successfully unlocked %@ from restored transaction", [fish idName]);
+                    }
+                }
+            }
+        }
+        
+        
+        CLS_LOG(@"Restore completed");
+    }
+}
+
+- (void)restoreSuccess:(NSNotification*)notification
 {
     _restoreAlert.title = @"Success";
     _restoreAlert.message = @"Restored purchase";
@@ -1200,6 +1249,19 @@
         NSLog(@"Restored transactions SUCCESS...");
         _isRestoreAlertShowing = true;
         [_restoreAlert show];
+        if ([notification.name isEqualToString:@"RestoreTransactionSuccessful"])
+        {
+            NSDictionary* userInfo = notification.userInfo;
+            if (userInfo) {
+                NSString *productId = (NSString*)userInfo[@"productIdentifier"];
+                NSLog (@"Successfully received restore transaction success notification! %@", productId);
+                PurchasableFish *fish = [_appDelegate.purchaseableItems objectForKey:productId];
+                [fish setUnlocked:[[NSUserDefaults standardUserDefaults] boolForKey:[fish idName]]];
+            }
+        }
+        
+        
+        CLS_LOG(@"Restore completed");
     }
 }
 

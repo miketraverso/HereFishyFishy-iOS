@@ -63,7 +63,6 @@
         _isRestoreAlertShowing = false;
         [_restoreAlert setDelegate:self];
 
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(purchaseComplete) name:@"TransactionCompleted" object:nil];
         
         _fadeIn = [SKAction sequence:@[[SKAction waitForDuration:kAnimDelay*3],
                                        [SKAction fadeInWithDuration:kAnimDelay]]];
@@ -77,6 +76,21 @@
     return self;
 }
 
+-(void)willMoveFromView:(SKView *)view {
+    [super willMoveFromView:view];
+    
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+-(void)didMoveToView:(SKView *)view {
+
+    [super didMoveToView:view];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(purchaseComplete) name:@"TransactionCompleted" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(restoreComplete) name:@"RestoreTransactionSuccessful" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(purchaseComplete:) name:@"TransactionCompletedWithProductIdentifier" object:nil];
+}
+
+
 - (void)setupStore
 {
     _gameState = GameStateStore;
@@ -85,10 +99,10 @@
     [self setupForeground];
     [self setupObstacles];
     [self setupUserInterface];
-    
-    for (NSInteger index = 0; index < _appDelegate.purchaseableItems.count; index++) {
-        [self setFish:index];
-    }
+    [self setFish:0];
+//    for (NSInteger index = 0; index < _appDelegate.purchaseableItems.count; index++) {
+//        [self setFish:index];
+//    }
     
     [_fishyFishy removeAllActions];
     
@@ -231,7 +245,7 @@
     if ([_playButton containsPoint:touchLocation]) {
         
         SKView * skView = (SKView *)self.view;
-        SKScene *scene = [[HFFScene alloc] initWithSize:skView.bounds.size andDelegate:nil];
+        SKScene *scene = [[HFFScene alloc] initWithSize:skView.bounds.size andDelegate:_delegate];
         scene.scaleMode = SKSceneScaleModeAspectFill;
         
         scene.scaleMode = SKSceneScaleModeAspectFill;
@@ -262,21 +276,25 @@
     if ([_buyButton containsPoint:touchLocation]) {
         
         PurchasableFish *fish = (PurchasableFish*)[_appDelegate.purchaseableItems objectAtIndex:current];
-        SKProduct *product = [self.delegate inAppPurchaseForProductId:[fish idName]];
-        if (product) {
+        
+        if (!fish.unlocked) {
             
-            if (![[HFFInAppPurchaseHelper sharedInstance] productPurchased:product.productIdentifier]) {
-                NSLog(@"Buying %@...", fish.name);
-                CLS_LOG(@"Trying to buy :: %@", product.productIdentifier);
-                [[HFFInAppPurchaseHelper sharedInstance] buyProduct:product];
+            SKProduct *product = [self.delegate inAppPurchaseForProductId:[fish idName]];
+            if (product) {
+                
+                //if (![[HFFInAppPurchaseHelper sharedInstance] productPurchased:product.productIdentifier]) {
+                    NSLog(@"Buying %@...", fish.name);
+                    CLS_LOG(@"Trying to buy :: %@", product.productIdentifier);
+                    [[HFFInAppPurchaseHelper sharedInstance] buyProduct:product];
+                //}
             }
-        }
-        else {
-            
-            CLS_LOG(@"Error trying to buy :: %@", fish.name);
+            else {
+                
+                CLS_LOG(@"Error trying to buy :: %@", fish.name);
 
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Oops..." message:@"Something went wrong. Please try your purchase again in a few." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles: nil];
-            [alert show];
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Oops..." message:@"Something went wrong. Please try your purchase again in a few." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles: nil];
+                [alert show];
+            }
         }
     }
     if ([_okButton containsPoint:touchLocation]) {
@@ -284,15 +302,17 @@
         PurchasableFish *fish = (PurchasableFish*)[_appDelegate.purchaseableItems objectAtIndex:current];
         if (fish != nil) {
 
-            CLS_LOG(@"Selected to play as :: %@", fish.name);
+            if (fish.unlocked) {
+                CLS_LOG(@"Selected to play as :: %@", fish.name);
 
-            [_appDelegate setSelectedFish:fish];
-            SKView * skView = (SKView *)self.view;
-            SKScene *scene = [[HFFScene alloc] initWithSize:skView.bounds.size andDelegate:nil];
-            scene.scaleMode = SKSceneScaleModeAspectFill;
-            
-            scene.scaleMode = SKSceneScaleModeAspectFill;
-            [skView presentScene:scene];
+                [_appDelegate setSelectedFish:fish];
+                SKView * skView = (SKView *)self.view;
+                SKScene *scene = [[HFFScene alloc] initWithSize:skView.bounds.size andDelegate:_delegate];
+                scene.scaleMode = SKSceneScaleModeAspectFill;
+                
+                scene.scaleMode = SKSceneScaleModeAspectFill;
+                [skView presentScene:scene];
+            }
         }
     }
 }
@@ -308,15 +328,11 @@
     [_fishyFishy setTexture:[fish baseTexture]];
     [_fishyFishy runAction:[SKAction repeatActionForever:[fish animateToPosition:_playableHeight andStartFrom:_playableStart]]];
     
-    BOOL fishUnlocked = [[NSUserDefaults standardUserDefaults] boolForKey:[fish idName]];
-    [fish setUnlocked:fishUnlocked];
     if ([fish unlocked]) {
         
-        if (![_buyButton isHidden]) {
-            [_buyButton setHidden:YES];
-            [_okButton setHidden:NO];
-            [self update:0];
-        }
+        [_buyButton setHidden:YES];
+        [_okButton setHidden:NO];
+        [self update:0];
     }
     else {
         [_buyButton setHidden:NO];
@@ -324,9 +340,34 @@
     }
 }
 
-- (void)purchaseComplete {
+- (void)purchaseComplete:(NSNotification *) notification {
+        
+    if ([notification.name isEqualToString:@"TransactionCompletedWithProductIdentifier"])
+    {
+        NSDictionary* userInfo = notification.userInfo;
+        if (userInfo) {
+            
+            NSString *productId = (NSString*)userInfo[@"productIdentifier"];
+            NSLog (@"Successfully received test notification! %@", productId);
+         
+            PurchasableFish *fish = [[_appDelegate purchaseableItems] objectForKey:productId];
+            [fish setUnlocked:YES];
+            [self setFish:[[_appDelegate purchaseableItems] indexOfObject:fish]];
+        }
+    }
+}
+
+- (void)restoreComplete {
     
-    _restoreAlert.title = @"Thank you";
+    CLS_LOG(@"Restore completed");
+    for (PurchasableFish *fish in _appDelegate.purchaseableItems) {
+        [fish setUnlocked:[[NSUserDefaults standardUserDefaults] boolForKey:[fish idName]]];
+    }
+}
+
+- (void)purchaseComplete {
+
+    _restoreAlert.title = @"Thank you!";
     _restoreAlert.message = @"Thank you for your purchase!";
     if (!_isRestoreAlertShowing)
     {

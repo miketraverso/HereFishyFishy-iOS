@@ -127,11 +127,20 @@ NSString *const IAPHelperProductPurchasedNotification = @"IAPHelperProductPurcha
 - (void)paymentQueueRestoreCompletedTransactionsFinished:(SKPaymentQueue *)queue
 {
     NSLog(@"Received restored transactions: %lu", (unsigned long)queue.transactions.count);
+    NSMutableArray *restoredTransactions = [[NSMutableArray alloc] init];
     for (SKPaymentTransaction *transaction in queue.transactions)
     {
         [self restoreTransaction:transaction];
-        NSLog(@"Restored Transaction...");
+        
+        NSLog(@"Restored Transaction... %@", transaction.originalTransaction.payment.productIdentifier);
+        if (![transaction.originalTransaction.payment.productIdentifier isEqualToString:@"com.traversoft.hff.no.ads"]) {
+
+            [restoredTransactions addObject:transaction.originalTransaction.payment.productIdentifier];
+        }
     }
+
+    NSDictionary* userInfo = @{@"productIdentifiers": restoredTransactions };
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"RestoreCompleteFinished" object:nil userInfo:userInfo];
 }
 
 - (void)paymentQueue:(SKPaymentQueue *)queue restoreCompletedTransactionsFailedWithError:(NSError *)error
@@ -155,7 +164,15 @@ NSString *const IAPHelperProductPurchasedNotification = @"IAPHelperProductPurcha
     [self provideContentForProductIdentifier:transaction.originalTransaction.payment.productIdentifier];
     [[SKPaymentQueue defaultQueue] finishTransaction:transaction];
     
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"RestoreTransactionSuccessful" object:nil];
+    if ([transaction.originalTransaction.payment.productIdentifier isEqualToString:@"com.traversoft.hff.no.ads"]) {
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"RestoreTransactionSuccessful" object:nil userInfo:nil];
+    }
+    else {
+        NSDictionary* userInfo = @{@"productIdentifier": transaction.originalTransaction.payment.productIdentifier };
+        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:transaction.originalTransaction.payment.productIdentifier];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"RestoreTransactionSuccessful" object:nil userInfo:userInfo];
+    }
 }
 
 - (void)failedTransaction:(SKPaymentTransaction *)transaction
@@ -172,9 +189,10 @@ NSString *const IAPHelperProductPurchasedNotification = @"IAPHelperProductPurcha
 - (void)provideContentForProductIdentifier:(NSString *)productIdentifier {
     
     [_purchasedProductIdentifiers addObject:productIdentifier];
+    NSDictionary* userInfo = @{@"productIdentifier": productIdentifier };
     [[NSUserDefaults standardUserDefaults] setBool:YES forKey:productIdentifier];
     [[NSUserDefaults standardUserDefaults] synchronize];
-    [[NSNotificationCenter defaultCenter] postNotificationName:IAPHelperProductPurchasedNotification object:productIdentifier userInfo:nil];
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"TransactionCompletedWithProductIdentifier" object:nil userInfo:userInfo];
     
 }
 
