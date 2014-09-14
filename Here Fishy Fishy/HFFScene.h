@@ -19,6 +19,6 @@
 
 @interface HFFScene : SKScene<SKPhysicsContactDelegate, UIAlertViewDelegate>
 -(id)initWithSize:(CGSize)size andDelegate:(id<HFFSceneDelegate>)delegate;
-@property (strong, nonatomic) id<HFFSceneDelegate> delegate;
+@property (strong, nonatomic) id<HFFSceneDelegate> hffSceneDelegate;
 
 @end

@@ -11,7 +11,7 @@
 
 @interface HFFPurchaseFishy : SKScene<SKPhysicsContactDelegate, UIAlertViewDelegate>
 
-@property (strong, nonatomic) id<HFFSceneDelegate> delegate;
+@property (strong, nonatomic) id<HFFSceneDelegate> hffSceneDelegate;
 
 -(id)initWithSize:(CGSize)size andDelegate:(id<HFFSceneDelegate>)delegate;
 

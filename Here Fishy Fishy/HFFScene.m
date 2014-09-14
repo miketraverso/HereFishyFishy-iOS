@@ -10,6 +10,9 @@
 #import "HFFPurchaseFishy.h"
 #import "HFFAppDelegate.h"
 
+#define kTemplateReviewURLiOS7 [NSURL URLWithString:[NSString stringWithFormat:@"itms-apps://itunes.apple.com/app/id%@", kAppId]]
+#define kTemplateReviewURLiOS8 [NSURL URLWithString:[NSString stringWithFormat:@"itms-apps://itunes.apple.com/WebObjects/MZStore.woa/wa/viewContentsUserReviews?id=%@&onlyLatestVersion=true&pageNumber=0&sortOrdering=1", kAppId]]
+
 @implementation HFFScene
 {
     SKNode *_worldNode;
@@ -70,7 +73,7 @@
     if (self = [super initWithSize:size])
     {
         
-        _delegate = delegate;
+        _hffSceneDelegate = delegate;
 
         _appDelegate = (HFFAppDelegate *)[[UIApplication sharedApplication] delegate];
 
@@ -132,7 +135,7 @@
                 CLS_LOG(@"Launched Fish Store");
 
                 SKView * skView = (SKView *)self.view;
-                SKScene *scene = [[HFFPurchaseFishy alloc] initWithSize:skView.bounds.size andDelegate:_delegate];
+                SKScene *scene = [[HFFPurchaseFishy alloc] initWithSize:skView.bounds.size andDelegate:_hffSceneDelegate];
                 scene.scaleMode = SKSceneScaleModeAspectFill;
                 
                 scene.scaleMode = SKSceneScaleModeAspectFill;
@@ -174,12 +177,20 @@
                 
                 if ([_rateButton containsPoint:touchLocation]) {
                     
-                    CLS_LOG(@"Share pressed");
-                    if ([[UIApplication sharedApplication] canOpenURL:
-                        [NSURL URLWithString:[NSString stringWithFormat:@"itms-apps://itunes.apple.com/app/id%@", kAppId]]]) {
+                    CLS_LOG(@"Rate pressed");
+                    NSURL *appStorePageUrl;
+                    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 8.0) {
                         
-                        [[UIApplication sharedApplication] openURL:
-                         [NSURL URLWithString:[NSString stringWithFormat:@"itms-apps://itunes.apple.com/app/id%@", kAppId]]];
+                        appStorePageUrl = kTemplateReviewURLiOS7;
+                    }
+                    else {
+                        
+                        appStorePageUrl = kTemplateReviewURLiOS8;
+                    }
+
+                    if ([[UIApplication sharedApplication] canOpenURL:appStorePageUrl]) {
+                        
+                        [[UIApplication sharedApplication] openURL:appStorePageUrl];
                     }
                 }
                 
@@ -199,7 +210,7 @@
                     
                     CLS_LOG(@"Fish Store pressed");
                     SKView * skView = (SKView *)self.view;
-                    SKScene *scene = [[HFFPurchaseFishy alloc] initWithSize:skView.bounds.size andDelegate:_delegate];
+                    SKScene *scene = [[HFFPurchaseFishy alloc] initWithSize:skView.bounds.size andDelegate:_hffSceneDelegate];
                     scene.scaleMode = SKSceneScaleModeAspectFill;
                     
                     scene.scaleMode = SKSceneScaleModeAspectFill;
@@ -532,7 +543,7 @@
 
 - (void)switchToNewGame
 {
-    SKScene *newScene = [[HFFScene alloc] initWithSize:self.size andDelegate:_delegate];
+    SKScene *newScene = [[HFFScene alloc] initWithSize:self.size andDelegate:_hffSceneDelegate];
     SKTransition *transition = [SKTransition fadeWithColor:[SKColor blackColor] duration:0.5];
     [self.view presentScene:newScene transition:transition];
 }
@@ -768,7 +779,16 @@
 - (void)setupFishyFishy {
 
     _fishyFishy = [[SKSpriteNode alloc] initWithTexture:[[_appDelegate selectedFish] baseTexture]];
-    [_fishyFishy setScale:.45f];
+    
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 8.0) {
+        
+        [_fishyFishy setScale:.5];
+    }
+    else {
+
+        [_fishyFishy setScale:1];
+    }
+    
     [_fishyFishy setPosition:CGPointMake(self.size.width * 0.2, _playableHeight * 0.7 + _playableStart)];
     [_fishyFishy setZPosition:LayerFishyFishy];
     [_worldNode addChild:_fishyFishy];
@@ -1008,7 +1028,7 @@
 
 - (BOOL)hasRemoveAdsBeenPurchased {
     
-    for (SKProduct *productIter in  [self.delegate getProducts]) {
+    for (SKProduct *productIter in  [_hffSceneDelegate getProducts]) {
         if (productIter != nil) {
             if ([[HFFInAppPurchaseHelper sharedInstance] productPurchased:@"com.traversoft.hff.no.ads"])
             {
@@ -1150,19 +1170,18 @@
     NSString *urlString = [NSString stringWithFormat:@"http://itunes.apple.com/app/id%@?mt=8", kAppId]; //APP_STORE_ID];
     NSURL *url = [NSURL URLWithString:urlString];
     
-    UIImage *screenshot = [self.delegate screenshot];
+    UIImage *screenshot = [_hffSceneDelegate screenshot];
     
     NSString *initialTextString = [NSString stringWithFormat:@"Yay!!! I scored %ld points in Here Fishy Fishy!", (long)[self getScore]];
-    [self.delegate shareString:initialTextString url:url image:screenshot];
+    [_hffSceneDelegate shareString:initialTextString url:url image:screenshot];
 }
 
 
 - (void)buyButtonTapped
 {
-    SKProduct *product = [self.delegate inAppPurchaseForProductId:@"com.traversoft.hff.no.ads"];
-    if (product)
+    SKProduct *product = [_hffSceneDelegate inAppPurchaseForProductId:@"com.traversoft.hff.no.ads"];
+    if (product) {
         
-    {
         if (![[HFFInAppPurchaseHelper sharedInstance] productPurchased:@"com.traversoft.hff.no.ads"])
         {
             NSLog(@"Buying %@...", product.productIdentifier);
@@ -1170,8 +1189,8 @@
             [[HFFInAppPurchaseHelper sharedInstance] buyProduct:product];
         }
     }
-    else
-    {
+    else {
+        
         CLS_LOG(@"Issue buying com.traversoft.hff.no.ads...");
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Oops..." message:@"Something went wrong. Please try your purchase again in a few." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles: nil];
         [alert show];

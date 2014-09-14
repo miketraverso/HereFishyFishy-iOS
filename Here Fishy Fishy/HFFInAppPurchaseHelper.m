@@ -23,6 +23,9 @@
                                       @"com.traversoft.hff.stinky",
                                       @"com.traversoft.hff.super",
                                       @"com.traversoft.hff.woody",
+                                      @"com.traversoft.hff.oldfish",
+                                      @"com.traversoft.hff.catfish",
+                                      @"com.traversoft.hff.goldfish",
                                       nil];
         sharedInstance = [[self alloc] initWithProductIdentifiers:productIdentifiers];
     });

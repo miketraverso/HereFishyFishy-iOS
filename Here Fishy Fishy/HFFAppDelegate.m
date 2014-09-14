@@ -28,11 +28,14 @@
     PurchasableFish *clown = [[PurchasableFish alloc] initWithName:@"clown" andId:@"com.traversoft.hff.clown"];
     PurchasableFish *stinky = [[PurchasableFish alloc] initWithName:@"stinky" andId:@"com.traversoft.hff.stinky"];
     PurchasableFish *woody = [[PurchasableFish alloc] initWithName:@"wood-fish" andId:@"com.traversoft.hff.woody"];
+    PurchasableFish *oldfish = [[PurchasableFish alloc] initWithName:@"oldfish" andId:@"com.traversoft.hff.oldfish"];
+    PurchasableFish *catfish = [[PurchasableFish alloc] initWithName:@"catfish" andId:@"com.traversoft.hff.catfish"];
+    PurchasableFish *goldfish = [[PurchasableFish alloc] initWithName:@"goldfish" andId:@"com.traversoft.hff.goldfish"];
 
     _selectedFish = orange;
     _purchaseableItems = [[M13MutableOrderedDictionary alloc]
-                          initWithObjects:@[orange, red, girl, clown, stinky, woody, superFish]
-                          pairedWithKeys:@[orange.idName, red.idName, girl.idName, clown.idName, stinky.idName, woody.idName, superFish.idName]];
+                          initWithObjects:@[orange, red, girl, clown, stinky, woody, superFish, catfish, oldfish, goldfish]
+                          pairedWithKeys:@[orange.idName, red.idName, girl.idName, clown.idName, stinky.idName, woody.idName, superFish.idName, catfish.idName, oldfish.idName, goldfish.idName]];
 
     // Override point for customization after application launch.
     return YES;

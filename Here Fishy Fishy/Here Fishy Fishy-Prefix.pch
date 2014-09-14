@@ -101,6 +101,12 @@
 
     #define FISHY_STINKY_MOVE_ANIM @[[SKTexture textureWithImageNamed:@"stinky-0"],[SKTexture textureWithImageNamed:@"stinky-1"],[SKTexture textureWithImageNamed:@"stinky-0"]]
 
+    #define FISHY_CAT_MOVE_ANIM @[[SKTexture textureWithImageNamed:@"catfish-0"],[SKTexture textureWithImageNamed:@"catfish-1"],[SKTexture textureWithImageNamed:@"catfish-0"]]
+
+    #define FISHY_OLD_MOVE_ANIM @[[SKTexture textureWithImageNamed:@"oldfish-0"],[SKTexture textureWithImageNamed:@"oldfish-1"],[SKTexture textureWithImageNamed:@"oldfish-0"]]
+
+    #define FISHY_GOLD_MOVE_ANIM @[[SKTexture textureWithImageNamed:@"goldfish-0"],[SKTexture textureWithImageNamed:@"goldfish-1"],[SKTexture textureWithImageNamed:@"goldfish-0"]]
+
     #define FISHY_SUPER_MOVE_ANIM @[[SKTexture textureWithImageNamed:@"super-fish-0"],[SKTexture textureWithImageNamed:@"super-fish-1"],[SKTexture textureWithImageNamed:@"super-fish-0"]]
 
     #define CRABBY_MOVE_ANIM @[[SKTexture textureWithImageNamed:@"crabby-0"],[SKTexture textureWithImageNamed:@"crabby-1"]]

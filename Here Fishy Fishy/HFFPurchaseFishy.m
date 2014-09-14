@@ -43,7 +43,7 @@
     HFFAppDelegate *_appDelegate;
     AVAudioPlayer *_player;
     NSInteger current;
-    SKAction *sequence, *redSequence, *stinkySequence, *clownSequence, *superSequence, *missySequence, *woodSequence;
+    SKAction *sequence, *redSequence, *stinkySequence, *clownSequence, *superSequence, *missySequence, *woodSequence, *oldfishSequence, *catfishSequence, *goldFishSequence;
 
 }
 
@@ -51,7 +51,7 @@
     
     if (self = [super initWithSize:size]) {
         
-        _delegate = delegate;
+        _hffSceneDelegate = delegate;
         _appDelegate = (HFFAppDelegate *)[[UIApplication sharedApplication] delegate];
 
         _worldNode = [SKNode node];
@@ -245,7 +245,7 @@
     if ([_playButton containsPoint:touchLocation]) {
         
         SKView * skView = (SKView *)self.view;
-        SKScene *scene = [[HFFScene alloc] initWithSize:skView.bounds.size andDelegate:_delegate];
+        SKScene *scene = [[HFFScene alloc] initWithSize:skView.bounds.size andDelegate:_hffSceneDelegate];
         scene.scaleMode = SKSceneScaleModeAspectFill;
         
         scene.scaleMode = SKSceneScaleModeAspectFill;
@@ -279,7 +279,7 @@
         
         if (!fish.unlocked) {
             
-            SKProduct *product = [self.delegate inAppPurchaseForProductId:[fish idName]];
+            SKProduct *product = [_hffSceneDelegate inAppPurchaseForProductId:[fish idName]];
             if (product) {
                 
                 //if (![[HFFInAppPurchaseHelper sharedInstance] productPurchased:product.productIdentifier]) {
@@ -307,7 +307,7 @@
 
                 [_appDelegate setSelectedFish:fish];
                 SKView * skView = (SKView *)self.view;
-                SKScene *scene = [[HFFScene alloc] initWithSize:skView.bounds.size andDelegate:_delegate];
+                SKScene *scene = [[HFFScene alloc] initWithSize:skView.bounds.size andDelegate:_hffSceneDelegate];
                 scene.scaleMode = SKSceneScaleModeAspectFill;
                 
                 scene.scaleMode = SKSceneScaleModeAspectFill;

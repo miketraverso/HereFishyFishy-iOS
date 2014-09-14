@@ -130,7 +130,7 @@
     CLS_LOG(@"Taking screenshot");
 
     UIGraphicsBeginImageContextWithOptions(self.view.bounds.size, NO, 1.0);
-    [self.view drawViewHierarchyInRect:self.view.bounds afterScreenUpdates:YES];
+    [self.view drawViewHierarchyInRect:self.view.bounds afterScreenUpdates:NO];
     UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
     return image;
